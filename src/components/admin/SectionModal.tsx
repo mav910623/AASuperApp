@@ -33,7 +33,6 @@ export function SectionModal({ isOpen, onClose, onSave, section }: SectionModalP
   const [slug, setSlug] = useState('');
   const [iconName, setIconName] = useState('Folder');
   const [isVisible, setIsVisible] = useState(true);
-  const [activeTab, setActiveTab] = useState<LanguageCode>('en');
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,14 +62,12 @@ export function SectionModal({ isOpen, onClose, onSave, section }: SectionModalP
       setIsVisible(true);
     }
     setError(null);
-    setActiveTab('en');
   }, [section, isOpen]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titles.en?.trim()) {
       setError('Section title in English is required.');
-      setActiveTab('en');
       return;
     }
 
@@ -191,57 +188,69 @@ export function SectionModal({ isOpen, onClose, onSave, section }: SectionModalP
             </button>
           </div>
 
+          {/* Stacked Titles & Descriptions on One Screen */}
           <div className="space-y-3 pt-2 border-t border-zinc-200 dark:border-zinc-800">
-            <div className="flex rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 p-1 border border-zinc-200 dark:border-zinc-800">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  onClick={() => setActiveTab(l.code)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                    activeTab === l.code
-                      ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-900 dark:text-zinc-50'
-                      : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
-                  }`}
-                >
-                  <span>{l.flag}</span>
-                  <span>{l.label}</span>
-                </button>
-              ))}
+            {/* English Title */}
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                English Title *
+              </label>
+              <input
+                type="text"
+                required
+                value={titles.en || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setTitles((prev) => ({ ...prev, en: val }));
+                  if (!section || !slug || slug === titles.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')) {
+                    setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+                  }
+                }}
+                placeholder="e.g. Prospecting & Opening"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+              />
             </div>
 
-            <div className="space-y-3 bg-zinc-50/50 dark:bg-zinc-800/30 p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Title ({activeTab.toUpperCase()}) {activeTab === 'en' && '*'}
-                </label>
-                <input
-                  type="text"
-                  value={titles[activeTab] || ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setTitles({ ...titles, [activeTab]: val });
-                    if (activeTab === 'en' && (!section || !slug || slug === titles.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))) {
-                      setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
-                    }
-                  }}
-                  placeholder={`Section title in ${activeTab.toUpperCase()}...`}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
+            {/* BM Title */}
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                BM Title (optional)
+              </label>
+              <input
+                type="text"
+                value={titles.bm || ''}
+                onChange={(e) => setTitles((prev) => ({ ...prev, bm: e.target.value }))}
+                placeholder="e.g. Prospek & Pembuka"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Description ({activeTab.toUpperCase()})
-                </label>
-                <textarea
-                  rows={2}
-                  value={descriptions[activeTab] || ''}
-                  onChange={(e) => setDescriptions({ ...descriptions, [activeTab]: e.target.value })}
-                  placeholder={`Section description in ${activeTab.toUpperCase()}...`}
-                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
-                />
-              </div>
+            {/* Chinese Title */}
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                Chinese Title (optional)
+              </label>
+              <input
+                type="text"
+                value={titles.cn || ''}
+                onChange={(e) => setTitles((prev) => ({ ...prev, cn: e.target.value }))}
+                placeholder="e.g. 开发市场与破冰话术"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            {/* Optional Short Description */}
+            <div className="pt-2">
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                Section Description (English / Default)
+              </label>
+              <textarea
+                rows={2}
+                value={descriptions.en || ''}
+                onChange={(e) => setDescriptions((prev) => ({ ...prev, en: e.target.value }))}
+                placeholder="Short 1-sentence description for this section..."
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+              />
             </div>
           </div>
 

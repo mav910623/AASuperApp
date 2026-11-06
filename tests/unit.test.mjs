@@ -493,18 +493,22 @@ test('admin: section slug generation produces sanitized URL-safe string', () => 
 });
 
 
-// Test 14: YouTube ID extraction
-test('youtube: extracts 11-char ID from various YouTube URL formats', () => {
-  function getYouTubeId(url) {
-    if (!url) return null;
-    const match = url.match(
-      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
-    );
+// Test 14: YouTube ID extraction with space stripping and 10-12 char support
+test('youtube: extracts 10 to 12-char ID and strips spaces from various YouTube URL formats', () => {
+  function getYouTubeId(rawUrl) {
+    if (!rawUrl) return null;
+    const cleanUrl = rawUrl.replace(/\s+/g, '');
+    const match = cleanUrl.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?.*[?&]v=|watch\?v=|shorts\/))([\w-]{10,12})/
+    ) || cleanUrl.match(/(?:youtu\.be\/)([\w-]{10,12})/);
     return match ? match[1] : null;
   }
 
   assert.equal(getYouTubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
   assert.equal(getYouTubeId('https://youtu.be/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(getYouTubeId(' https:// youtu.be / dQw4w9WgXcQ '), 'dQw4w9WgXcQ'); // accidental spaces stripped
+  assert.equal(getYouTubeId('https://youtu.be/1234567890'), '1234567890'); // 10 chars
+  assert.equal(getYouTubeId('https://www.youtube.com/watch?v=123456789012'), '123456789012'); // 12 chars
   assert.equal(getYouTubeId('https://www.youtube.com/shorts/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
   assert.equal(getYouTubeId('https://www.youtube.com/embed/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
   assert.equal(getYouTubeId('https://example.com/not-youtube'), null);
@@ -590,5 +594,89 @@ test('admin: tool upsert falls back to English title and URL when localized fiel
   assert.equal(payload.url.bm, 'https://youtu.be/masterclass');
   assert.equal(payload.url.cn, 'https://youtu.be/masterclass');
 });
+// Test 18: Dynamic calendar recurring rules expansion and blackout filtering
+test('calendar: expands recurring rules, filters blackout dates, and merges special events', async () => {
+  const { generateMonthSchedule } = await import('../src/lib/calendarGenerator.ts');
+
+  const recurringRules = [
+    {
+      id: 'dcc',
+      title: 'Daily DCC',
+      frequency: 'daily',
+      time: '7:30 AM',
+      venue: 'Zoom',
+      address_or_link: 'https://zoom.us/dcc',
+      is_active: true,
+    },
+    {
+      id: 'asap',
+      title: 'Weekly Thursday ASAP',
+      frequency: 'weekly',
+      day_of_week: 4, // Thursday
+      time: '8:30 PM',
+      venue: 'Nu Skin Plaza',
+      address_or_link: 'Kuala Lumpur',
+      is_active: true,
+    },
+    {
+      id: 'bse',
+      title: 'Monthly BSE 1',
+      frequency: 'monthly_nth_weekday',
+      nth_week: 3,
+      day_of_week: 6, // 3rd Saturday
+      time: '10:00 AM',
+      venue: 'Wisma Central',
+      address_or_link: 'KL',
+      is_active: true,
+    },
+  ];
+
+  const blackoutDates = [
+    {
+      id: 'bo-1',
+      date: '2026-11-21', // 3rd Saturday of Nov 2026
+      reason: 'Replaced by Rally',
+      rule_id: 'bse',
+    },
+  ];
+
+  const specialEvents = [
+    {
+      id: 'rally-2026',
+      date: '2026-11-21',
+      time: '2:00 PM',
+      title: { en: 'AA Annual Rally', bm: 'Rali AA', cn: '年度大聚会', ta: 'Rally' },
+      speaker: 'Presidential Council',
+      location_or_link: 'Sunway Pyramid',
+    },
+  ];
+
+  const result = generateMonthSchedule(2026, 11, recurringRules, blackoutDates, specialEvents);
+
+  // November 2026 has 30 days
+  // Daily DCC should appear on all 30 days
+  const dccEvents = result.filter((e) => e.rule_id === 'dcc');
+  assert.equal(dccEvents.length, 30);
+
+  // November 2026 Thursdays: Nov 5, 12, 19, 26 -> 4 Thursdays
+  const asapEvents = result.filter((e) => e.rule_id === 'asap');
+  assert.equal(asapEvents.length, 4);
+
+  // BSE was blacked out on 2026-11-21
+  const bseEvents = result.filter((e) => e.rule_id === 'bse');
+  assert.equal(bseEvents.length, 0);
+
+  // Special Rally event should be present on 2026-11-21
+  const rally = result.find((e) => e.id === 'rally-2026');
+  assert.ok(rally);
+  assert.equal(rally.date, '2026-11-21');
+  assert.equal(rally.is_recurring, false);
+
+  // Results should be strictly sorted chronologically
+  for (let i = 0; i < result.length - 1; i++) {
+    assert.ok(result[i].date <= result[i + 1].date);
+  }
+});
+
 
 

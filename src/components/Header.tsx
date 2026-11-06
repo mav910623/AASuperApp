@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo, useSyncExternalStore } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, Lock } from 'lucide-react';
+import { Sun, Moon, Lock, ChevronDown, Check } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { AALogo } from '@/components/AALogo';
 import type { LanguageCode } from '@/types/app';
@@ -13,12 +13,28 @@ export { AALogo };
 export function Header() {
   const { lang, setLang, t, dictionary } = useApp();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const [langOpen, setLangOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false
   );
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setLangOpen(false);
+      }
+    }
+    if (langOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [langOpen]);
 
   // Show Tamil pill only if Tamil dictionary entries are populated
   const hasTamil = useMemo(() => {
@@ -27,12 +43,16 @@ export function Header() {
     );
   }, [dictionary]);
 
-  const languages: { code: LanguageCode; label: string }[] = useMemo(() => [
-    { code: 'en', label: 'EN' },
-    { code: 'bm', label: 'BM' },
-    { code: 'cn', label: '中文' },
-    ...(hasTamil ? [{ code: 'ta' as LanguageCode, label: 'தமிழ்' }] : []),
+  const languages: { code: LanguageCode; label: string; fullLabel: string }[] = useMemo(() => [
+    { code: 'en', label: 'EN', fullLabel: 'EN - English' },
+    { code: 'bm', label: 'BM', fullLabel: 'BM - Bahasa Malaysia' },
+    { code: 'cn', label: '中文', fullLabel: '中文 - Chinese' },
+    ...(hasTamil ? [{ code: 'ta' as LanguageCode, label: 'தமிழ்', fullLabel: 'தமிழ் - Tamil' }] : []),
   ], [hasTamil]);
+
+  const currentOption = useMemo(() => {
+    return languages.find((l) => l.code === lang) || languages[0];
+  }, [languages, lang]);
 
   const isDark = mounted && (theme === 'dark' || resolvedTheme === 'dark');
 
@@ -51,32 +71,56 @@ export function Header() {
           </h1>
         </div>
 
-        {/* Right Section: Language Switcher + Theme Toggle + Discreet Lock */}
+        {/* Right Section: Compact Dropdown Language Switcher + Theme Toggle + Discreet Lock */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* UI Language Pill Switcher */}
-          <nav
-            aria-label="UI Language Switcher"
-            className="flex items-center rounded-full bg-zinc-100 p-0.5 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800"
-          >
-            {languages.map((l) => {
-              const isActive = lang === l.code;
-              return (
-                <button
-                  key={l.code}
-                  type="button"
-                  onClick={() => setLang(l.code)}
-                  aria-pressed={isActive}
-                  className={`min-h-[34px] min-w-[36px] rounded-full px-2.5 text-xs font-semibold transition-all duration-200 active:scale-95 ${
-                    isActive
-                      ? 'bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-950 font-bold'
-                      : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100'
-                  }`}
-                >
-                  {l.label}
-                </button>
-              );
-            })}
-          </nav>
+          {/* Compact Dropdown Language Selector */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setLangOpen((prev) => !prev)}
+              aria-label="Select Application Language"
+              aria-expanded={langOpen}
+              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors active:scale-95 shadow-2xs select-none"
+            >
+              <span className="text-sm leading-none">🌐</span>
+              <span>{currentOption?.label || 'EN'}</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-zinc-500 transition-transform duration-200 ${
+                  langOpen ? 'rotate-180 text-amber-500' : ''
+                }`}
+              />
+            </button>
+
+            {/* Popover Menu */}
+            {langOpen && (
+              <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 dark:border-zinc-800 mb-1">
+                  Language / 语言
+                </div>
+                {languages.map((opt) => {
+                  const isActive = lang === opt.code;
+                  return (
+                    <button
+                      key={opt.code}
+                      type="button"
+                      onClick={() => {
+                        setLang(opt.code);
+                        setLangOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all ${
+                        isActive
+                          ? 'bg-amber-500 text-white font-bold shadow-xs'
+                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <span>{opt.fullLabel}</span>
+                      {isActive && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Dark / Light Mode Toggle */}
           <button

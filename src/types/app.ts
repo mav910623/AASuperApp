@@ -69,7 +69,32 @@ export type CalendarEvent = {
   time: string;
   title: LocalizedString;
   speaker: string;
+  venue?: string;
   location_or_link: string;
+  description?: string;
+  image_url?: string;
+};
+
+export type RecurringRule = {
+  id: string;
+  title: string;
+  frequency: 'daily' | 'weekly' | 'monthly_nth_weekday';
+  day_of_week?: number; // 0=Sun..6=Sat
+  nth_week?: number; // 1..5 (for monthly_nth_weekday)
+  time: string;
+  venue: string;
+  address_or_link: string;
+  speaker?: string;
+  description?: string;
+  image_url?: string;
+  is_active: boolean;
+};
+
+export type BlackoutDate = {
+  id: string;
+  date: string; // YYYY-MM-DD
+  reason: string;
+  rule_id?: string; // 'all' or specific rule id
 };
 
 export type TeamCalendar = {
@@ -77,6 +102,10 @@ export type TeamCalendar = {
   month_label: LocalizedString;
   image_url: LocalizedString;
   events: CalendarEvent[];
+  recurring_rules?: RecurringRule[];
+  blackout_dates?: BlackoutDate[];
+  default_view?: 'flyer' | 'dynamic';
+  last_reviewed_month?: string; // YYYY-MM
   created_at?: string;
   updated_at?: string;
 };

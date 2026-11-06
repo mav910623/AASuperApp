@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { X, Check, Calendar, AlertCircle } from 'lucide-react';
-import { LANGUAGES } from './ToolBasicInfo';
-import type { CalendarEvent, LanguageCode } from '@/types/app';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Calendar, AlertCircle, Upload, Loader2, Check } from 'lucide-react';
+import { uploadMediaAction } from '@/app/actions/adminActions';
+import type { CalendarEvent } from '@/types/app';
 
 interface EventHighlightModalProps {
   isOpen: boolean;
@@ -21,48 +21,69 @@ export function EventHighlightModal({
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [speaker, setSpeaker] = useState('');
+  const [venue, setVenue] = useState('');
   const [locationOrLink, setLocationOrLink] = useState('');
-  const [titles, setTitles] = useState<Record<LanguageCode, string>>({
-    en: '',
-    bm: '',
-    cn: '',
-    ta: '',
-  });
-  const [activeTab, setActiveTab] = useState<LanguageCode>('en');
+  const [description, setDescription] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [titleEn, setTitleEn] = useState('');
+  const [titleCn, setTitleCn] = useState('');
+  const [titleBm, setTitleBm] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (event) {
       setDate(event.date || '');
       setTime(event.time || '');
       setSpeaker(event.speaker || '');
+      setVenue(event.venue || '');
       setLocationOrLink(event.location_or_link || '');
-      setTitles({
-        en: event.title?.en || '',
-        bm: event.title?.bm || '',
-        cn: event.title?.cn || '',
-        ta: event.title?.ta || '',
-      });
+      setDescription(event.description || '');
+      setImageUrl(event.image_url || '');
+      setTitleEn(event.title?.en || '');
+      setTitleCn(event.title?.cn || '');
+      setTitleBm(event.title?.bm || '');
     } else {
       setDate('');
       setTime('');
       setSpeaker('');
+      setVenue('');
       setLocationOrLink('');
-      setTitles({ en: '', bm: '', cn: '', ta: '' });
+      setDescription('');
+      setImageUrl('');
+      setTitleEn('');
+      setTitleCn('');
+      setTitleBm('');
     }
     setError(null);
-    setActiveTab('en');
   }, [event, isOpen]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await uploadMediaAction(formData);
+      if (res.success && res.url) {
+        setImageUrl(res.url);
+      }
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titles.en?.trim()) {
+    if (!titleEn.trim()) {
       setError('English title is required');
-      setActiveTab('en');
       return;
     }
     if (!date.trim()) {
-      setError('Event date is required (e.g. Nov 12, 2026)');
+      setError('Date is required (YYYY-MM-DD)');
       return;
     }
 
@@ -71,8 +92,16 @@ export function EventHighlightModal({
       date: date.trim(),
       time: time.trim(),
       speaker: speaker.trim(),
+      venue: venue.trim(),
       location_or_link: locationOrLink.trim(),
-      title: titles,
+      description: description.trim(),
+      image_url: imageUrl.trim(),
+      title: {
+        en: titleEn.trim(),
+        bm: titleBm.trim() || titleEn.trim(),
+        cn: titleCn.trim() || titleEn.trim(),
+        ta: titleEn.trim(),
+      },
     };
 
     onSave(newEvent);
@@ -83,24 +112,20 @@ export function EventHighlightModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md flex flex-col rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-lg max-h-[92vh] flex flex-col rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/70">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-amber-500" />
             <h3 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">
-              {event ? 'Edit Event Highlight' : 'Add Event Highlight'}
+              {event ? 'Edit Special Event' : 'Add Special Event'}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-          >
+          <button type="button" onClick={onClose} className="p-1 rounded-full text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-3.5">
           {error && (
             <div className="flex items-center gap-2 p-2.5 text-xs text-red-600 bg-red-50 dark:bg-red-950/40 rounded-xl">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -108,17 +133,59 @@ export function EventHighlightModal({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              English Title *
+            </label>
+            <input
+              type="text"
+              required
+              value={titleEn}
+              onChange={(e) => setTitleEn(e.target.value)}
+              placeholder="e.g. AA Annual Champions Rally & Gala"
+              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 font-medium"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Date *
+                Chinese Title (optional)
               </label>
               <input
                 type="text"
+                value={titleCn}
+                onChange={(e) => setTitleCn(e.target.value)}
+                placeholder="e.g. AA 团队年度领袖总动员"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                BM Title (optional)
+              </label>
+              <input
+                type="text"
+                value={titleBm}
+                onChange={(e) => setTitleBm(e.target.value)}
+                placeholder="e.g. Perhimpunan Juara AA"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                Date (YYYY-MM-DD) *
+              </label>
+              <input
+                type="text"
+                required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                placeholder="e.g. Nov 14, 2026"
-                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="2026-11-28"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 font-mono"
               />
             </div>
 
@@ -130,84 +197,104 @@ export function EventHighlightModal({
                 type="text"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                placeholder="e.g. 8:00 PM GMT+8"
-                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="2:00 PM - 6:00 PM"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                Speaker / Host
+              </label>
+              <input
+                type="text"
+                value={speaker}
+                onChange={(e) => setSpeaker(e.target.value)}
+                placeholder="e.g. President Council"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                Venue Name
+              </label>
+              <input
+                type="text"
+                value={venue}
+                onChange={(e) => setVenue(e.target.value)}
+                placeholder="e.g. Sunway Pyramid Convention"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Speaker / Host
-            </label>
-            <input
-              type="text"
-              value={speaker}
-              onChange={(e) => setSpeaker(e.target.value)}
-              placeholder="e.g. Marcus Vance"
-              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Zoom or Map Location Link
+              Address (for Google Maps / Waze) or Zoom URL
             </label>
             <input
               type="text"
               value={locationOrLink}
               onChange={(e) => setLocationOrLink(e.target.value)}
-              placeholder="https://zoom.us/j/... or Hall Address"
-              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              placeholder="Sunway Pyramid Convention Centre, Petaling Jaya"
+              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
             />
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
-            <div className="flex rounded-xl bg-zinc-100 dark:bg-zinc-800/80 p-1 border border-zinc-200 dark:border-zinc-800">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  onClick={() => setActiveTab(l.code)}
-                  className={`flex-1 py-1 text-[11px] font-semibold rounded-lg transition-all ${
-                    activeTab === l.code
-                      ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-900 dark:text-zinc-50'
-                      : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              Rich Description (supports line breaks)
+            </label>
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Event agenda, keynote topics, ticketing info..."
+              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 resize-none"
+            />
+          </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Title ({activeTab.toUpperCase()}) {activeTab === 'en' && '*'}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Attached Event Image URL (optional)
               </label>
-              <input
-                type="text"
-                value={titles[activeTab] || ''}
-                onChange={(e) => setTitles({ ...titles, [activeTab]: e.target.value })}
-                placeholder={`Event title in ${activeTab.toUpperCase()}...`}
-                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="text-[11px] font-bold text-amber-600 hover:underline flex items-center gap-1"
+              >
+                {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                <span>Upload Image</span>
+              </button>
+              <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
             </div>
+            <input
+              type="text"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://images.unsplash.com/... or uploaded cover"
+              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+            />
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-zinc-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold shadow-md shadow-orange-500/20 active:scale-95"
             >
               <Check className="w-3.5 h-3.5" />
-              <span>{event ? 'Update' : 'Add Event'}</span>
+              <span>Save Event</span>
             </button>
           </div>
         </form>

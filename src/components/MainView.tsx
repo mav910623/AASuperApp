@@ -178,7 +178,7 @@ export function MainView({
 
     const fullMsg = `${header}${toolsList}\n\n_Shared via AA Team Hub_`;
     const waUrl = `https://wa.me/?text=${encodeURIComponent(fullMsg)}`;
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
+    window.location.href = waUrl;
   };
 
   // Saved Tools List

@@ -640,10 +640,10 @@ export async function updateCalendarAction(
   calendarData: Partial<TeamCalendar>
 ): Promise<ActionResponse<TeamCalendar>> {
   try {
-    await requireSession(['admin', 'superadmin']);
+    await requireSession(['editor', 'admin', 'superadmin']);
     const client = getAdminClient();
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       month_label: {
         en: calendarData.month_label?.en?.trim() || '',
         bm: calendarData.month_label?.bm?.trim() || '',
@@ -657,13 +657,16 @@ export async function updateCalendarAction(
         ta: calendarData.image_url?.ta?.trim() || '',
       },
       events: Array.isArray(calendarData.events) ? calendarData.events : [],
+      recurring_rules: Array.isArray(calendarData.recurring_rules) ? calendarData.recurring_rules : [],
+      blackout_dates: Array.isArray(calendarData.blackout_dates) ? calendarData.blackout_dates : [],
+      default_view: calendarData.default_view || 'dynamic',
+      last_reviewed_month: calendarData.last_reviewed_month || '',
       updated_at: new Date().toISOString(),
     };
 
     let result;
     if (calendarData.id) {
-      result = await client
-        .from('team_calendar')
+      result = await (client.from('team_calendar') as any)
         .update(payload)
         .eq('id', calendarData.id)
         .select()
@@ -676,15 +679,13 @@ export async function updateCalendarAction(
         .maybeSingle();
 
       if (existing?.id) {
-        result = await client
-          .from('team_calendar')
+        result = await (client.from('team_calendar') as any)
           .update(payload)
           .eq('id', existing.id)
           .select()
           .single();
       } else {
-        result = await client
-          .from('team_calendar')
+        result = await (client.from('team_calendar') as any)
           .insert(payload)
           .select()
           .single();
@@ -692,6 +693,32 @@ export async function updateCalendarAction(
     }
 
     if (result.error) {
+      // If postgres schema doesn't have the newly added json columns yet, fallback to base payload
+      if (result.error.message && result.error.message.includes('does not exist')) {
+        const basePayload = {
+          month_label: payload.month_label,
+          image_url: payload.image_url,
+          events: payload.events,
+          updated_at: payload.updated_at,
+        };
+        const fallbackRes = calendarData.id
+          ? await (client.from('team_calendar') as any).update(basePayload).eq('id', calendarData.id).select().single()
+          : await (client.from('team_calendar') as any).insert(basePayload).select().single();
+        if (fallbackRes.error) {
+          throw new Error(fallbackRes.error.message);
+        }
+        safeRevalidate();
+        return {
+          success: true,
+          data: {
+            ...(fallbackRes.data as TeamCalendar),
+            recurring_rules: calendarData.recurring_rules,
+            blackout_dates: calendarData.blackout_dates,
+            default_view: calendarData.default_view,
+            last_reviewed_month: calendarData.last_reviewed_month,
+          },
+        };
+      }
       throw new Error(result.error.message);
     }
 

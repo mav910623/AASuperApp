@@ -81,396 +81,1081 @@ export const DEFAULT_SECTIONS: Section[] = [
 
 export const DEFAULT_TOOLS: Tool[] = [
   {
-    id: 'tool-prospecting-1',
-    section_id: 'cebbb725-ce7c-43c6-8d33-ea19d948bae0',
-    type: 'youtube',
-    title: {
-      en: '3-Minute Elevator Pitch & Cold Approach',
-      bm: 'Pendekatan 3-Minit & Skrip Dingin',
-      cn: '3分钟黄金电梯演讲与破冰话术',
-      ta: '3 நிமிட அறிமுகம் மற்றும் உரையாடல் முறை',
+    "id": "tool-wow",
+    "section_id": "cebbb725-ce7c-43c6-8d33-ea19d948bae0",
+    "type": "youtube",
+    "title": {
+      "en": "W.O.W (KL) - COEV Rayne",
+      "bm": "W.O.W (KL) - COEV Rayne",
+      "cn": "W.O.W (KL) - COEV Rayne",
+      "ta": "W.O.W (KL) - COEV Rayne"
     },
-    description: {
-      en: 'Master the high-converting 30-second teaser and invitation formula for high-net-worth prospects.',
-      bm: 'Kuasai formula jemputan 30 saat yang berkesan untuk prospek berpotensi tinggi.',
-      cn: '掌握针对高净值潜客的高效邀约框架与30秒黄金开场白。',
-      ta: 'முக்கிய வாடிக்கையாளர்களை ஈர்க்கும் எளிய அறிமுக முறை.',
+    "description": {
+      "en": "Official AA Team duplication resource: W.O.W (KL) - COEV Rayne",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: W.O.W (KL) - COEV Rayne",
+      "cn": "AA 团队系统倍增核心资料：W.O.W (KL) - COEV Rayne",
+      "ta": ""
     },
-    speaker_name: 'Marcus Vance',
-    duration: '🎥 4 mins',
-    available_languages: ['en', 'bm', 'cn'],
-    topics: {
-      en: ['Cold Market', 'Scripts', 'Invitation'],
-      bm: ['Pasaran Dingin', 'Skrip', 'Jemputan'],
-      cn: ['陌生开发', '邀约话术', '破冰技巧'],
-      ta: ['அறிமுகம்', 'ஸ்கிரிப்ட்'],
+    "speaker_name": "COEV Rayne",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "COEV Rayne"
+      ],
+      "bm": [
+        "COEV Rayne"
+      ],
+      "cn": [
+        "COEV Rayne"
+      ],
+      "ta": []
     },
-    url: {
-      en: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      bm: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      cn: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      ta: '',
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
     },
-    whatsapp_script: {
-      en: 'Hey! Check out this quick 4-minute breakdown by Marcus on how to approach high-potential prospects without being salesy:',
-      bm: 'Hai! Tonton video ringkas 4 minit oleh Marcus ini tentang cara mendekati prospek secara profesional:',
-      cn: '嗨！看一下Marcus导师这个4分钟短片，教你如何自然得体地邀约高质量客户：',
-      ta: '',
+    "whatsapp_script": {
+      "en": "Check out \"W.O.W (KL) - COEV Rayne\" by COEV Rayne:",
+      "bm": "Tonton \"W.O.W (KL) - COEV Rayne\" oleh COEV Rayne:",
+      "cn": "推荐学习《W.O.W (KL) - COEV Rayne》主讲：COEV Rayne：",
+      "ta": ""
     },
-    thumbnail_url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&auto=format&fit=crop&q=80',
-    is_featured: true,
-    sort_order: 1,
-    is_visible: true,
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": true,
+    "sort_order": 1,
+    "is_visible": true
   },
   {
-    id: 'tool-prospecting-2',
-    section_id: 'cebbb725-ce7c-43c6-8d33-ea19d948bae0',
-    type: 'pdf',
-    title: {
-      en: 'WhatsApp Follow-Up & Reply Playbook',
-      bm: 'Buku Panduan Susulan WhatsApp',
-      cn: 'WhatsApp 跟进与破冰话术手册',
-      ta: 'வாட்ஸ்அப் தொடர் தொடர்பு வழிகாட்டி',
+    "id": "tool-copycat",
+    "section_id": "cebbb725-ce7c-43c6-8d33-ea19d948bae0",
+    "type": "youtube",
+    "title": {
+      "en": "Copycat Marketing",
+      "bm": "Copycat Marketing",
+      "cn": "Copycat Marketing",
+      "ta": "Copycat Marketing"
     },
-    description: {
-      en: 'Proven 5-touch message scripts for warm referrals and unresponsive prospects.',
-      bm: 'Skrip mesej 5 langkah yang terbukti untuk rujukan dan prospek yang senyap.',
-      cn: '5步跟进标准话术，激活沉睡客户，提升再邀约转化率。',
-      ta: 'வாடிக்கையாளர் தொடர் உரையாடல் உத்திகள்.',
+    "description": {
+      "en": "Official AA Team duplication resource: Copycat Marketing",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: Copycat Marketing",
+      "cn": "AA 团队系统倍增核心资料：Copycat Marketing",
+      "ta": ""
     },
-    speaker_name: 'Jessica Wong',
-    duration: '📄 PDF Guide',
-    available_languages: ['en', 'cn'],
-    topics: {
-      en: ['Follow-Up', 'WhatsApp', 'Closing'],
-      bm: ['Susulan', 'WhatsApp', 'Closing'],
-      cn: ['后续跟进', 'WhatsApp', '成交'],
-      ta: ['தொடர்பு'],
+    "speaker_name": "AA Team",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "AA Team"
+      ],
+      "bm": [
+        "AA Team"
+      ],
+      "cn": [
+        "AA Team"
+      ],
+      "ta": []
     },
-    url: {
-      en: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      bm: '',
-      cn: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      ta: '',
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
     },
-    whatsapp_script: {
-      en: 'Here is the WhatsApp follow-up script cheat sheet we discussed today. Save this to your phone:',
-      bm: 'Ini skrip susulan WhatsApp yang kita bincangkan tadi. Simpan dalam telefon anda:',
-      cn: '这是我们刚才提到的 WhatsApp 高效跟进话术手册，直接保存参考：',
-      ta: '',
+    "whatsapp_script": {
+      "en": "Check out \"Copycat Marketing\" by AA Team:",
+      "bm": "Tonton \"Copycat Marketing\" oleh AA Team:",
+      "cn": "推荐学习《Copycat Marketing》主讲：AA Team：",
+      "ta": ""
     },
-    thumbnail_url: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&auto=format&fit=crop&q=80',
-    is_featured: false,
-    sort_order: 2,
-    is_visible: true,
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 2,
+    "is_visible": true
   },
   {
-    id: 'tool-onboarding-1',
-    section_id: '8305a7da-8972-4cc7-a44e-b2d9e1faaa35',
-    type: 'pdf',
-    title: {
-      en: 'First 48-Hour Fast-Start Action Blueprint',
-      bm: 'Pelan Tindakan Pantas 48 Jam Pertama',
-      cn: '新人起步黄金48小时行动蓝图',
-      ta: 'முதல் 48 மணிநேர செயல் திட்டம்',
+    "id": "tool-pipeline",
+    "section_id": "cebbb725-ce7c-43c6-8d33-ea19d948bae0",
+    "type": "youtube",
+    "title": {
+      "en": "Parable of Pipeline",
+      "bm": "Parable of Pipeline",
+      "cn": "Parable of Pipeline",
+      "ta": "Parable of Pipeline"
     },
-    description: {
-      en: 'Step 1-to-5 checklist every new team member must complete to launch their first campaign.',
-      bm: 'Senarai semak 5 langkah wajib untuk setiap rakan baru melancarkan kempen pertama.',
-      cn: '新伙伴入职前2天必须执行的5步标准化通关清单。',
-      ta: 'புதிய உறுப்பினர்களுக்கான 5 எளிய வழிகள்.',
+    "description": {
+      "en": "Official AA Team duplication resource: Parable of Pipeline",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: Parable of Pipeline",
+      "cn": "AA 团队系统倍增核心资料：Parable of Pipeline",
+      "ta": ""
     },
-    speaker_name: 'Leadership Council',
-    duration: '📄 PDF (6 Pages)',
-    available_languages: ['en', 'bm', 'cn', 'ta'],
-    topics: {
-      en: ['Fast Start', 'Checklist', 'Foundation'],
-      bm: ['Mula Pantas', 'Senarai Semak', 'Asas'],
-      cn: ['快速启动', '清单', '基础'],
-      ta: ['தொடக்கம்', 'பட்டியல்'],
+    "speaker_name": "AA Team",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "AA Team"
+      ],
+      "bm": [
+        "AA Team"
+      ],
+      "cn": [
+        "AA Team"
+      ],
+      "ta": []
     },
-    url: {
-      en: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      bm: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      cn: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      ta: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
     },
-    whatsapp_script: {
-      en: 'Welcome to the team! Here is your official First 48-Hour Fast-Start Action Blueprint. Let us review step 1 together:',
-      bm: 'Selamat datang ke pasukan! Ini Pelan Tindakan Pantas 48 Jam rasmi anda. Jom kita semak langkah 1 bersama:',
-      cn: '热烈欢迎加入大家庭！这是为你准备的新人起步黄金48小时通关蓝图，我们一起过一遍第1步：',
-      ta: 'குழுவிற்கு வரவேற்கிறோம்! உங்கள் முதல் 48 மணிநேர வழிகாட்டி இதோ:',
+    "whatsapp_script": {
+      "en": "Check out \"Parable of Pipeline\" by AA Team:",
+      "bm": "Tonton \"Parable of Pipeline\" oleh AA Team:",
+      "cn": "推荐学习《Parable of Pipeline》主讲：AA Team：",
+      "ta": ""
     },
-    thumbnail_url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&auto=format&fit=crop&q=80',
-    is_featured: true,
-    sort_order: 1,
-    is_visible: true,
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 3,
+    "is_visible": true
   },
   {
-    id: 'tool-onboarding-2',
-    section_id: '8305a7da-8972-4cc7-a44e-b2d9e1faaa35',
-    type: 'video',
-    title: {
-      en: 'System Setup & Backoffice Walkthrough',
-      bm: 'Panduan Tetapan Sistem & Pejabat Maya',
-      cn: '系统设置与后台操作完整演示',
-      ta: 'கணினி அமைவு மற்றும் அலுவலக வழிகாட்டல்',
+    "id": "tool-prysm",
+    "section_id": "cebbb725-ce7c-43c6-8d33-ea19d948bae0",
+    "type": "youtube",
+    "title": {
+      "en": "How to present PRYSM business opportunity - Ashley",
+      "bm": "How to present PRYSM business opportunity - Ashley",
+      "cn": "How to present PRYSM business opportunity - Ashley",
+      "ta": "How to present PRYSM business opportunity - Ashley"
     },
-    description: {
-      en: 'Live screen recording showing how to navigate commissions, member enrollment, and order tracking.',
-      bm: 'Rakaman skrin langsung cara semak komisen, pendaftaran ahli, dan pesanan.',
-      cn: '手把手带你熟悉系统后台、查阅奖金明细与快速注册新会员。',
-      ta: 'கணினி பயன்பாடு குறித்த வீடியோ விளக்கம்.',
+    "description": {
+      "en": "Official AA Team duplication resource: How to present PRYSM business opportunity - Ashley",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: How to present PRYSM business opportunity - Ashley",
+      "cn": "AA 团队系统倍增核心资料：How to present PRYSM business opportunity - Ashley",
+      "ta": ""
     },
-    speaker_name: 'Ahmad Daniel',
-    duration: '🎬 8 mins',
-    available_languages: ['en', 'bm'],
-    topics: {
-      en: ['System', 'Backoffice', 'Tutorial'],
-      bm: ['Sistem', 'Pejabat Maya', 'Tutorial'],
-      cn: ['后台系统', '新手教学'],
-      ta: ['கணினி'],
+    "speaker_name": "Ashley",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Ashley"
+      ],
+      "bm": [
+        "Ashley"
+      ],
+      "cn": [
+        "Ashley"
+      ],
+      "ta": []
     },
-    url: {
-      en: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      bm: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      cn: '',
-      ta: '',
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
     },
-    whatsapp_script: {
-      en: 'Here is the step-by-step video guide on how to navigate the portal and register your first order:',
-      bm: 'Ini video panduan langkah demi langkah cara guna portal dan daftar pesanan pertama anda:',
-      cn: '这是后台系统与下单流程的操作视频教学：',
-      ta: '',
+    "whatsapp_script": {
+      "en": "Check out \"How to present PRYSM business opportunity - Ashley\" by Ashley:",
+      "bm": "Tonton \"How to present PRYSM business opportunity - Ashley\" oleh Ashley:",
+      "cn": "推荐学习《How to present PRYSM business opportunity - Ashley》主讲：Ashley：",
+      "ta": ""
     },
-    thumbnail_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80',
-    is_featured: false,
-    sort_order: 2,
-    is_visible: true,
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 4,
+    "is_visible": true
   },
   {
-    id: 'tool-skillset-1',
-    section_id: 'c651a8d7-b7d4-4092-bc12-791d0e6a0d19',
-    type: 'soundcloud',
-    title: {
-      en: 'Overcoming the Top 5 Objections Audio Clinic',
-      bm: 'Klinik Audio: Mengatasi 5 Bantahan Utama',
-      cn: '实战拆解：破解最常见5大拒绝理由',
-      ta: '5 முக்கிய மறுப்புகளைக் கடக்கும் ஆடியோ பயிற்சி',
+    "id": "tool-school",
+    "section_id": "8305a7da-8972-4cc7-a44e-b2d9e1faaa35",
+    "type": "pdf",
+    "title": {
+      "en": "The Business School (PDF) - Robert Kiyosaki",
+      "bm": "The Business School (PDF) - Robert Kiyosaki",
+      "cn": "The Business School (PDF) - Robert Kiyosaki",
+      "ta": "The Business School (PDF) - Robert Kiyosaki"
     },
-    description: {
-      en: 'Listen on your commute to hear live roleplays on "No Money", "No Time", and "Need to Think About It".',
-      bm: 'Dengar semasa memandu untuk contoh respon "Tiada Duit", "Tiada Masa", dan "Fikir Dulu".',
-      cn: '上下班路上必听音频：实战拆解“没钱”、“没时间”、“再考虑考虑”等常见阻抗。',
-      ta: 'வாடிக்கையாளர் மறுப்புகளைக் கையாள்வதற்கான ஆடியோ பாடம்.',
+    "description": {
+      "en": "Official AA Team duplication resource: The Business School (PDF) - Robert Kiyosaki",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: The Business School (PDF) - Robert Kiyosaki",
+      "cn": "AA 团队系统倍增核心资料：The Business School (PDF) - Robert Kiyosaki",
+      "ta": ""
     },
-    speaker_name: 'Sarah Lim',
-    duration: '🎧 15 mins',
-    available_languages: ['en', 'cn'],
-    topics: {
-      en: ['Objections', 'Audio Clinic', 'Closing'],
-      bm: ['Bantahan', 'Klinik Audio', 'Closing'],
-      cn: ['异议处理', '音频培训', '促成成交'],
-      ta: ['மறுப்பு', 'ஆடியோ'],
+    "speaker_name": "Robert Kiyosaki",
+    "duration": "📄 PDF Guide",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Robert Kiyosaki"
+      ],
+      "bm": [
+        "Robert Kiyosaki"
+      ],
+      "cn": [
+        "Robert Kiyosaki"
+      ],
+      "ta": []
     },
-    url: {
-      en: 'https://soundcloud.com/forss/vladislav-delay-raamat',
-      bm: '',
-      cn: 'https://soundcloud.com/forss/vladislav-delay-raamat',
-      ta: '',
+    "url": {
+      "en": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "bm": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "cn": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "ta": ""
     },
-    whatsapp_script: {
-      en: 'Listen to Sarah Lim handle the 5 toughest objections in this 15-minute audio session. Super practical:',
-      bm: 'Dengarkan Sarah Lim menjawab 5 bantahan paling biasa dalam audio 15 minit ini. Sangat berguna:',
-      cn: '强烈推荐听一下Sarah导师这段15分钟的异议处理音频录音，非常务实：',
-      ta: '',
+    "whatsapp_script": {
+      "en": "Check out \"The Business School (PDF) - Robert Kiyosaki\" by Robert Kiyosaki:",
+      "bm": "Tonton \"The Business School (PDF) - Robert Kiyosaki\" oleh Robert Kiyosaki:",
+      "cn": "推荐学习《The Business School (PDF) - Robert Kiyosaki》主讲：Robert Kiyosaki：",
+      "ta": ""
     },
-    thumbnail_url: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800&auto=format&fit=crop&q=80',
-    is_featured: true,
-    sort_order: 1,
-    is_visible: true,
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": true,
+    "sort_order": 5,
+    "is_visible": true
   },
   {
-    id: 'tool-skillset-2',
-    section_id: 'c651a8d7-b7d4-4092-bc12-791d0e6a0d19',
-    type: 'youtube',
-    title: {
-      en: 'The One-Page Closing Framework',
-      bm: 'Rangka Penutup Satu Halaman',
-      cn: '一页纸成交法与心理促单技巧',
-      ta: 'எளிய ஒரு பக்க முடிவு கட்டமைப்பு',
+    "id": "tool-esbi",
+    "section_id": "8305a7da-8972-4cc7-a44e-b2d9e1faaa35",
+    "type": "soundcloud",
+    "title": {
+      "en": "ESBI Audio - Robert Kiyosaki",
+      "bm": "ESBI Audio - Robert Kiyosaki",
+      "cn": "ESBI Audio - Robert Kiyosaki",
+      "ta": "ESBI Audio - Robert Kiyosaki"
     },
-    description: {
-      en: 'How to transition from presenting the opportunity to asking for the credit card smoothly.',
-      bm: 'Cara beralih dari pembentangan ke bayaran secara lancar dan meyakinkan.',
-      cn: '如何从展示商机自然过渡到促单刷卡，消除准客户心理戒备。',
-      ta: 'விளக்கக்காட்சியிலிருந்து எளிய முறையில் முடிவு பெறுவது எப்படி.',
+    "description": {
+      "en": "Official AA Team duplication resource: ESBI Audio - Robert Kiyosaki",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: ESBI Audio - Robert Kiyosaki",
+      "cn": "AA 团队系统倍增核心资料：ESBI Audio - Robert Kiyosaki",
+      "ta": ""
     },
-    speaker_name: 'Marcus Vance',
-    duration: '🎥 10 mins',
-    available_languages: ['en', 'bm', 'cn'],
-    topics: {
-      en: ['Closing', 'Framework', 'Sales Psychology'],
-      bm: ['Closing', 'Rangka Kerja', 'Psikologi'],
-      cn: ['成交技巧', '销售心理', '框架方法'],
-      ta: ['விற்பனை'],
+    "speaker_name": "Robert Kiyosaki",
+    "duration": "🎧 Audio",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Robert Kiyosaki"
+      ],
+      "bm": [
+        "Robert Kiyosaki"
+      ],
+      "cn": [
+        "Robert Kiyosaki"
+      ],
+      "ta": []
     },
-    url: {
-      en: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      bm: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      cn: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      ta: '',
+    "url": {
+      "en": "https://soundcloud.com/sc-recordings/sets/audio-recordings",
+      "bm": "https://soundcloud.com/sc-recordings/sets/audio-recordings",
+      "cn": "https://soundcloud.com/sc-recordings/sets/audio-recordings",
+      "ta": ""
     },
-    whatsapp_script: {
-      en: 'Check out the One-Page Closing Framework video here. Helps you close with clarity and zero pressure:',
-      bm: 'Tengok video Rangka Penutup Satu Halaman ini. Sangat membantu untuk closing tanpa tekanan:',
-      cn: '推荐观看这支一页纸成交法解析视频，让你零压力从容促单：',
-      ta: '',
+    "whatsapp_script": {
+      "en": "Check out \"ESBI Audio - Robert Kiyosaki\" by Robert Kiyosaki:",
+      "bm": "Tonton \"ESBI Audio - Robert Kiyosaki\" oleh Robert Kiyosaki:",
+      "cn": "推荐学习《ESBI Audio - Robert Kiyosaki》主讲：Robert Kiyosaki：",
+      "ta": ""
     },
-    thumbnail_url: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80',
-    is_featured: false,
-    sort_order: 2,
-    is_visible: true,
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 6,
+    "is_visible": true
   },
   {
-    id: 'tool-product-1',
-    section_id: '96ce3f3b-284f-49a4-b5c1-9672d535149e',
-    type: 'image',
-    title: {
-      en: 'Product Comparison & Clinical Efficacy Chart',
-      bm: 'Carta Perbandingan Produk & Keberkesanan Klinikal',
-      cn: '核心产品科研对比与临床功效图解',
-      ta: 'தயாரிப்பு ஒப்பீடு மற்றும் மருத்துவ விளக்கப்படம்',
+    "id": "tool-start",
+    "section_id": "8305a7da-8972-4cc7-a44e-b2d9e1faaa35",
+    "type": "youtube",
+    "title": {
+      "en": "How to Get Started - Bao Yan",
+      "bm": "How to Get Started - Bao Yan",
+      "cn": "How to Get Started - Bao Yan",
+      "ta": "How to Get Started - Bao Yan"
     },
-    description: {
-      en: 'High-resolution infographic summarizing clinical trial benchmarks against market alternatives.',
-      bm: 'Infografik resolusi tinggi membandingkan ujian klinikal dengan produk pasaran lain.',
-      cn: '高清晰科研对比图表，一目了然展示临床数据与竞品差异优势。',
-      ta: 'தயாரிப்பு பலன்கள் குறித்த உயர் தெளிவுத்திறன் வரைபடம்.',
+    "description": {
+      "en": "Official AA Team duplication resource: How to Get Started - Bao Yan",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: How to Get Started - Bao Yan",
+      "cn": "AA 团队系统倍增核心资料：How to Get Started - Bao Yan",
+      "ta": ""
     },
-    speaker_name: 'Dr. Raymond Tan',
-    duration: '🖼️ Infographic',
-    available_languages: ['en', 'bm', 'cn'],
-    topics: {
-      en: ['Science', 'Comparison', 'Product Specs'],
-      bm: ['Sains', 'Perbandingan', 'Produk'],
-      cn: ['科研数据', '产品对比', '图解'],
-      ta: ['அறிவியல்', 'தயாரிப்பு'],
+    "speaker_name": "Bao Yan",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Bao Yan"
+      ],
+      "bm": [
+        "Bao Yan"
+      ],
+      "cn": [
+        "Bao Yan"
+      ],
+      "ta": []
     },
-    url: {
-      en: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1600&auto=format&fit=crop&q=85',
-      bm: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1600&auto=format&fit=crop&q=85',
-      cn: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1600&auto=format&fit=crop&q=85',
-      ta: '',
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
     },
-    whatsapp_script: {
-      en: 'Here is the official clinical trial summary and product comparison infographic. Tap to open full screen:',
-      bm: 'Ini infografik ringkasan ujian klinikal dan perbandingan produk rasmi. Ketik untuk buka skrin penuh:',
-      cn: '这是官方核心产品科研对比与临床数据长图，点击可放大细看：',
-      ta: '',
+    "whatsapp_script": {
+      "en": "Check out \"How to Get Started - Bao Yan\" by Bao Yan:",
+      "bm": "Tonton \"How to Get Started - Bao Yan\" oleh Bao Yan:",
+      "cn": "推荐学习《How to Get Started - Bao Yan》主讲：Bao Yan：",
+      "ta": ""
     },
-    thumbnail_url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80',
-    is_featured: true,
-    sort_order: 1,
-    is_visible: true,
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 7,
+    "is_visible": true
   },
   {
-    id: 'tool-product-2',
-    section_id: '96ce3f3b-284f-49a4-b5c1-9672d535149e',
-    type: 'link',
-    title: {
-      en: 'Direct Customer Order Portal & Digital Catalog',
-      bm: 'Portal Pesanan Pelanggan & Katalog Digital',
-      cn: '官方在线订购商城与数字电子图册',
-      ta: 'வாடிக்கையாளர் ஆர்டர் தளம் மற்றும் பட்டியல்',
+    "id": "tool-nu-ent",
+    "section_id": "8305a7da-8972-4cc7-a44e-b2d9e1faaa35",
+    "type": "youtube",
+    "title": {
+      "en": "Nu Entrepreneur Training - COEV Rayne",
+      "bm": "Nu Entrepreneur Training - COEV Rayne",
+      "cn": "Nu Entrepreneur Training - COEV Rayne",
+      "ta": "Nu Entrepreneur Training - COEV Rayne"
     },
-    description: {
-      en: 'Direct interactive web portal for live price checks, inventory status, and instant member discounts.',
-      bm: 'Portal web langsung untuk semak harga terkini, stok, dan diskaun ahli serta-merta.',
-      cn: '实时查阅零售价、会员专属折扣与即时库存的官方订购门户。',
-      ta: 'நேரடி இணையதள வாடிக்கையாளர் தளம்.',
+    "description": {
+      "en": "Official AA Team duplication resource: Nu Entrepreneur Training - COEV Rayne",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: Nu Entrepreneur Training - COEV Rayne",
+      "cn": "AA 团队系统倍增核心资料：Nu Entrepreneur Training - COEV Rayne",
+      "ta": ""
     },
-    speaker_name: 'Direct Access',
-    duration: '🔗 Web Portal',
-    available_languages: ['en', 'bm', 'cn'],
-    topics: {
-      en: ['Catalog', 'Portal', 'Orders'],
-      bm: ['Katalog', 'Portal', 'Pesanan'],
-      cn: ['电子图册', '在线订购', '商城'],
-      ta: ['பட்டியல்', 'ஆர்டர்'],
+    "speaker_name": "COEV Rayne",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "COEV Rayne"
+      ],
+      "bm": [
+        "COEV Rayne"
+      ],
+      "cn": [
+        "COEV Rayne"
+      ],
+      "ta": []
     },
-    url: {
-      en: 'https://teamhub.example.com/catalog',
-      bm: 'https://teamhub.example.com/catalog?lang=bm',
-      cn: 'https://teamhub.example.com/catalog?lang=cn',
-      ta: '',
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
     },
-    whatsapp_script: {
-      en: 'Browse our complete digital product catalog and verify member pricing directly through this portal:',
-      bm: 'Lihat katalog produk digital lengkap dan semak harga ahli terus melalui portal ini:',
-      cn: '欢迎浏览我们的完整电子产品图册，通过此链接直接享受会员专属价：',
-      ta: '',
+    "whatsapp_script": {
+      "en": "Check out \"Nu Entrepreneur Training - COEV Rayne\" by COEV Rayne:",
+      "bm": "Tonton \"Nu Entrepreneur Training - COEV Rayne\" oleh COEV Rayne:",
+      "cn": "推荐学习《Nu Entrepreneur Training - COEV Rayne》主讲：COEV Rayne：",
+      "ta": ""
     },
-    thumbnail_url: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80',
-    is_featured: false,
-    sort_order: 2,
-    is_visible: true,
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 8,
+    "is_visible": true
   },
+  {
+    "id": "tool-abc-sel",
+    "section_id": "c651a8d7-b7d4-4092-bc12-791d0e6a0d19",
+    "type": "youtube",
+    "title": {
+      "en": "How to do Well in ABC - Selenium",
+      "bm": "How to do Well in ABC - Selenium",
+      "cn": "How to do Well in ABC - Selenium",
+      "ta": "How to do Well in ABC - Selenium"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: How to do Well in ABC - Selenium",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: How to do Well in ABC - Selenium",
+      "cn": "AA 团队系统倍增核心资料：How to do Well in ABC - Selenium",
+      "ta": ""
+    },
+    "speaker_name": "Selenium",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Selenium"
+      ],
+      "bm": [
+        "Selenium"
+      ],
+      "cn": [
+        "Selenium"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"How to do Well in ABC - Selenium\" by Selenium:",
+      "bm": "Tonton \"How to do Well in ABC - Selenium\" oleh Selenium:",
+      "cn": "推荐学习《How to do Well in ABC - Selenium》主讲：Selenium：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": true,
+    "sort_order": 9,
+    "is_visible": true
+  },
+  {
+    "id": "tool-abc-gav",
+    "section_id": "c651a8d7-b7d4-4092-bc12-791d0e6a0d19",
+    "type": "youtube",
+    "title": {
+      "en": "ABC 法则 - Gavin",
+      "bm": "ABC 法则 - Gavin",
+      "cn": "ABC 法则 - Gavin",
+      "ta": "ABC 法则 - Gavin"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: ABC 法则 - Gavin",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: ABC 法则 - Gavin",
+      "cn": "AA 团队系统倍增核心资料：ABC 法则 - Gavin",
+      "ta": ""
+    },
+    "speaker_name": "Gavin",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "cn"
+    ],
+    "topics": {
+      "en": [
+        "Gavin"
+      ],
+      "bm": [
+        "Gavin"
+      ],
+      "cn": [
+        "Gavin"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"ABC 法则 - Gavin\" by Gavin:",
+      "bm": "Tonton \"ABC 法则 - Gavin\" oleh Gavin:",
+      "cn": "推荐学习《ABC 法则 - Gavin》主讲：Gavin：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 10,
+    "is_visible": true
+  },
+  {
+    "id": "tool-close-car",
+    "section_id": "c651a8d7-b7d4-4092-bc12-791d0e6a0d19",
+    "type": "youtube",
+    "title": {
+      "en": "Closing Master Class - Carolyn",
+      "bm": "Closing Master Class - Carolyn",
+      "cn": "Closing Master Class - Carolyn",
+      "ta": "Closing Master Class - Carolyn"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: Closing Master Class - Carolyn",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: Closing Master Class - Carolyn",
+      "cn": "AA 团队系统倍增核心资料：Closing Master Class - Carolyn",
+      "ta": ""
+    },
+    "speaker_name": "Carolyn",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Carolyn"
+      ],
+      "bm": [
+        "Carolyn"
+      ],
+      "cn": [
+        "Carolyn"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"Closing Master Class - Carolyn\" by Carolyn:",
+      "bm": "Tonton \"Closing Master Class - Carolyn\" oleh Carolyn:",
+      "cn": "推荐学习《Closing Master Class - Carolyn》主讲：Carolyn：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 11,
+    "is_visible": true
+  },
+  {
+    "id": "tool-30-nos",
+    "section_id": "c651a8d7-b7d4-4092-bc12-791d0e6a0d19",
+    "type": "youtube",
+    "title": {
+      "en": "How to handle 30 NOs to YES - Haylane",
+      "bm": "How to handle 30 NOs to YES - Haylane",
+      "cn": "How to handle 30 NOs to YES - Haylane",
+      "ta": "How to handle 30 NOs to YES - Haylane"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: How to handle 30 NOs to YES - Haylane",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: How to handle 30 NOs to YES - Haylane",
+      "cn": "AA 团队系统倍增核心资料：How to handle 30 NOs to YES - Haylane",
+      "ta": ""
+    },
+    "speaker_name": "Haylane",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Haylane"
+      ],
+      "bm": [
+        "Haylane"
+      ],
+      "cn": [
+        "Haylane"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"How to handle 30 NOs to YES - Haylane\" by Haylane:",
+      "bm": "Tonton \"How to handle 30 NOs to YES - Haylane\" oleh Haylane:",
+      "cn": "推荐学习《How to handle 30 NOs to YES - Haylane》主讲：Haylane：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 12,
+    "is_visible": true
+  },
+  {
+    "id": "tool-g3-e",
+    "section_id": "96ce3f3b-284f-49a4-b5c1-9672d535149e",
+    "type": "youtube",
+    "title": {
+      "en": "G3 Juice (E) - Renee",
+      "bm": "G3 Juice (E) - Renee",
+      "cn": "G3 Juice (E) - Renee",
+      "ta": "G3 Juice (E) - Renee"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: G3 Juice (E) - Renee",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: G3 Juice (E) - Renee",
+      "cn": "AA 团队系统倍增核心资料：G3 Juice (E) - Renee",
+      "ta": ""
+    },
+    "speaker_name": "Renee",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Renee"
+      ],
+      "bm": [
+        "Renee"
+      ],
+      "cn": [
+        "Renee"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"G3 Juice (E) - Renee\" by Renee:",
+      "bm": "Tonton \"G3 Juice (E) - Renee\" oleh Renee:",
+      "cn": "推荐学习《G3 Juice (E) - Renee》主讲：Renee：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": true,
+    "sort_order": 13,
+    "is_visible": true
+  },
+  {
+    "id": "tool-g3-c",
+    "section_id": "96ce3f3b-284f-49a4-b5c1-9672d535149e",
+    "type": "youtube",
+    "title": {
+      "en": "G3 Juice (C) - Emily",
+      "bm": "G3 Juice (C) - Emily",
+      "cn": "G3 Juice (C) - Emily",
+      "ta": "G3 Juice (C) - Emily"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: G3 Juice (C) - Emily",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: G3 Juice (C) - Emily",
+      "cn": "AA 团队系统倍增核心资料：G3 Juice (C) - Emily",
+      "ta": ""
+    },
+    "speaker_name": "Emily",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "cn"
+    ],
+    "topics": {
+      "en": [
+        "Emily"
+      ],
+      "bm": [
+        "Emily"
+      ],
+      "cn": [
+        "Emily"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"G3 Juice (C) - Emily\" by Emily:",
+      "bm": "Tonton \"G3 Juice (C) - Emily\" oleh Emily:",
+      "cn": "推荐学习《G3 Juice (C) - Emily》主讲：Emily：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 14,
+    "is_visible": true
+  },
+  {
+    "id": "tool-col-c",
+    "section_id": "96ce3f3b-284f-49a4-b5c1-9672d535149e",
+    "type": "youtube",
+    "title": {
+      "en": "Inner Beauty Collagen Plus (C) - Joni",
+      "bm": "Inner Beauty Collagen Plus (C) - Joni",
+      "cn": "Inner Beauty Collagen Plus (C) - Joni",
+      "ta": "Inner Beauty Collagen Plus (C) - Joni"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: Inner Beauty Collagen Plus (C) - Joni",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: Inner Beauty Collagen Plus (C) - Joni",
+      "cn": "AA 团队系统倍增核心资料：Inner Beauty Collagen Plus (C) - Joni",
+      "ta": ""
+    },
+    "speaker_name": "Joni",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "cn"
+    ],
+    "topics": {
+      "en": [
+        "Joni"
+      ],
+      "bm": [
+        "Joni"
+      ],
+      "cn": [
+        "Joni"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"Inner Beauty Collagen Plus (C) - Joni\" by Joni:",
+      "bm": "Tonton \"Inner Beauty Collagen Plus (C) - Joni\" oleh Joni:",
+      "cn": "推荐学习《Inner Beauty Collagen Plus (C) - Joni》主讲：Joni：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 15,
+    "is_visible": true
+  },
+  {
+    "id": "tool-col-e",
+    "section_id": "96ce3f3b-284f-49a4-b5c1-9672d535149e",
+    "type": "youtube",
+    "title": {
+      "en": "Inner Beauty Collagen Plus (E) - Nigel",
+      "bm": "Inner Beauty Collagen Plus (E) - Nigel",
+      "cn": "Inner Beauty Collagen Plus (E) - Nigel",
+      "ta": "Inner Beauty Collagen Plus (E) - Nigel"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: Inner Beauty Collagen Plus (E) - Nigel",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: Inner Beauty Collagen Plus (E) - Nigel",
+      "cn": "AA 团队系统倍增核心资料：Inner Beauty Collagen Plus (E) - Nigel",
+      "ta": ""
+    },
+    "speaker_name": "Nigel",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Nigel"
+      ],
+      "bm": [
+        "Nigel"
+      ],
+      "cn": [
+        "Nigel"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"Inner Beauty Collagen Plus (E) - Nigel\" by Nigel:",
+      "bm": "Tonton \"Inner Beauty Collagen Plus (E) - Nigel\" oleh Nigel:",
+      "cn": "推荐学习《Inner Beauty Collagen Plus (E) - Nigel》主讲：Nigel：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 16,
+    "is_visible": true
+  },
+  {
+    "id": "tool-ys-c",
+    "section_id": "96ce3f3b-284f-49a4-b5c1-9672d535149e",
+    "type": "youtube",
+    "title": {
+      "en": "You-Span (C) - Soo Hui",
+      "bm": "You-Span (C) - Soo Hui",
+      "cn": "You-Span (C) - Soo Hui",
+      "ta": "You-Span (C) - Soo Hui"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: You-Span (C) - Soo Hui",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: You-Span (C) - Soo Hui",
+      "cn": "AA 团队系统倍增核心资料：You-Span (C) - Soo Hui",
+      "ta": ""
+    },
+    "speaker_name": "Soo Hui",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "cn"
+    ],
+    "topics": {
+      "en": [
+        "Soo Hui"
+      ],
+      "bm": [
+        "Soo Hui"
+      ],
+      "cn": [
+        "Soo Hui"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"You-Span (C) - Soo Hui\" by Soo Hui:",
+      "bm": "Tonton \"You-Span (C) - Soo Hui\" oleh Soo Hui:",
+      "cn": "推荐学习《You-Span (C) - Soo Hui》主讲：Soo Hui：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 17,
+    "is_visible": true
+  },
+  {
+    "id": "tool-ys-e",
+    "section_id": "96ce3f3b-284f-49a4-b5c1-9672d535149e",
+    "type": "youtube",
+    "title": {
+      "en": "You-Span (E) - Mikaela",
+      "bm": "You-Span (E) - Mikaela",
+      "cn": "You-Span (E) - Mikaela",
+      "ta": "You-Span (E) - Mikaela"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: You-Span (E) - Mikaela",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: You-Span (E) - Mikaela",
+      "cn": "AA 团队系统倍增核心资料：You-Span (E) - Mikaela",
+      "ta": ""
+    },
+    "speaker_name": "Mikaela",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Mikaela"
+      ],
+      "bm": [
+        "Mikaela"
+      ],
+      "cn": [
+        "Mikaela"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"You-Span (E) - Mikaela\" by Mikaela:",
+      "bm": "Tonton \"You-Span (E) - Mikaela\" oleh Mikaela:",
+      "cn": "推荐学习《You-Span (E) - Mikaela》主讲：Mikaela：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 18,
+    "is_visible": true
+  },
+  {
+    "id": "tool-trme-e",
+    "section_id": "96ce3f3b-284f-49a4-b5c1-9672d535149e",
+    "type": "youtube",
+    "title": {
+      "en": "TRME (E) - Shireen",
+      "bm": "TRME (E) - Shireen",
+      "cn": "TRME (E) - Shireen",
+      "ta": "TRME (E) - Shireen"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: TRME (E) - Shireen",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: TRME (E) - Shireen",
+      "cn": "AA 团队系统倍增核心资料：TRME (E) - Shireen",
+      "ta": ""
+    },
+    "speaker_name": "Shireen",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "en"
+    ],
+    "topics": {
+      "en": [
+        "Shireen"
+      ],
+      "bm": [
+        "Shireen"
+      ],
+      "cn": [
+        "Shireen"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"TRME (E) - Shireen\" by Shireen:",
+      "bm": "Tonton \"TRME (E) - Shireen\" oleh Shireen:",
+      "cn": "推荐学习《TRME (E) - Shireen》主讲：Shireen：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 19,
+    "is_visible": true
+  },
+  {
+    "id": "tool-trme-c",
+    "section_id": "96ce3f3b-284f-49a4-b5c1-9672d535149e",
+    "type": "youtube",
+    "title": {
+      "en": "TRME (C) - Chee Chai",
+      "bm": "TRME (C) - Chee Chai",
+      "cn": "TRME (C) - Chee Chai",
+      "ta": "TRME (C) - Chee Chai"
+    },
+    "description": {
+      "en": "Official AA Team duplication resource: TRME (C) - Chee Chai",
+      "bm": "Sumber latihan duplikasi rasmi AA Team: TRME (C) - Chee Chai",
+      "cn": "AA 团队系统倍增核心资料：TRME (C) - Chee Chai",
+      "ta": ""
+    },
+    "speaker_name": "Chee Chai",
+    "duration": "🎥 Video",
+    "available_languages": [
+      "cn"
+    ],
+    "topics": {
+      "en": [
+        "Chee Chai"
+      ],
+      "bm": [
+        "Chee Chai"
+      ],
+      "cn": [
+        "Chee Chai"
+      ],
+      "ta": []
+    },
+    "url": {
+      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "ta": ""
+    },
+    "whatsapp_script": {
+      "en": "Check out \"TRME (C) - Chee Chai\" by Chee Chai:",
+      "bm": "Tonton \"TRME (C) - Chee Chai\" oleh Chee Chai:",
+      "cn": "推荐学习《TRME (C) - Chee Chai》主讲：Chee Chai：",
+      "ta": ""
+    },
+    "thumbnail_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+    "is_featured": false,
+    "sort_order": 20,
+    "is_visible": true
+  }
 ];
 
 export const DEFAULT_CALENDAR: TeamCalendar = {
-  id: '1',
-  month_label: {
-    en: 'Team Calendar & Monthly Schedule',
-    bm: 'Jadual & Kalendar Bulanan Pasukan',
-    cn: '团队月度活动与培训总日程',
-    ta: 'குழு மாதாந்திர நிகழ்வுகள்',
+  "id": "1",
+  "month_label": {
+    "en": "Team Calendar & Monthly Schedule",
+    "bm": "Jadual & Kalendar Bulanan Pasukan",
+    "cn": "团队月度活动与培训总日程",
+    "ta": "குழு மாதாந்திர நிகழ்வுகள்"
   },
-  image_url: {
-    en: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85',
-    bm: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85',
-    cn: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85',
-    ta: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85',
+  "image_url": {
+    "en": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
+    "bm": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
+    "cn": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
+    "ta": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85"
   },
-  events: [
+  "default_view": "dynamic",
+  "last_reviewed_month": "",
+  "recurring_rules": [
     {
-      id: 'event-1',
-      date: '2026-04-12',
-      time: '8:00 PM - 10:00 PM (GMT+8)',
-      title: {
-        en: 'Super Leadership Summit: Q2 Velocity Launch',
-        bm: 'Sidang Kemuncak Kepimpinan: Pelancaran Q2',
-        cn: '全球领袖峰会：Q2 腾飞启动大会',
-        ta: 'தலைமைத்துவ உச்சி மாநாடு',
-      },
-      speaker: 'President Council & Top Achievers',
-      location_or_link: 'https://zoom.us/j/888999111',
+      "id": "rec-dcc",
+      "title": "Daily Core Check-in (DCC)",
+      "frequency": "daily",
+      "time": "7:30 AM - 8:00 AM (GMT+8)",
+      "venue": "Zoom Online Meeting",
+      "address_or_link": "https://zoom.us/j/888999111",
+      "speaker": "COEV Leaders",
+      "description": "Daily morning alignment, gratitude, mindset conditioning, and 3 key daily action goals.",
+      "image_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
+      "is_active": true
     },
     {
-      id: 'event-2',
-      date: '2026-04-18',
-      time: '10:30 AM - 1:00 PM (GMT+8)',
-      title: {
-        en: 'In-Person Prospecting & Live Closing Masterclass',
-        bm: 'Bengkel Prospek Bersemuka & Closing Langsung',
-        cn: '实战大练兵：线下爆单邀约与实操演练',
-        ta: 'நேரடி பயிற்சிப் பட்டறை',
-      },
-      speaker: 'Sarah Lim & Marcus Vance',
-      location_or_link: 'Grand Ballroom, Wisma Central, Level 5, Kuala Lumpur',
+      "id": "rec-asap",
+      "title": "Weekly ASAP Action Meeting",
+      "frequency": "weekly",
+      "day_of_week": 4,
+      "time": "8:30 PM - 10:00 PM (GMT+8)",
+      "venue": "Nu Skin KL Experience Center / Zoom",
+      "address_or_link": "Nu Skin Malaysia, Level 10, Menara Hua Sun, Jalan Loke Yew, Kuala Lumpur",
+      "speaker": "Core Achievers & Special Guests",
+      "description": "Weekly All Star Action Plan: Business opportunity overview, product science testimonials, and fast-track coaching.",
+      "image_url": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80",
+      "is_active": true
     },
     {
-      id: 'event-3',
-      date: '2026-04-25',
-      time: '2:30 PM - 4:30 PM (GMT+8)',
-      title: {
-        en: 'New Product Science & Testimonial Showcase',
-        bm: 'Sains Produk Baru & Perkongsian Testimoni',
-        cn: '重磅新品科研解密与前沿健康见证发布会',
-        ta: 'புதிய தயாரிப்பு அறிமுகம்',
-      },
-      speaker: 'Dr. Raymond Tan',
-      location_or_link: 'https://zoom.us/j/777888222',
-    },
+      "id": "rec-bse",
+      "title": "BSE 1 (Business School of Excellence)",
+      "frequency": "monthly_nth_weekday",
+      "nth_week": 3,
+      "day_of_week": 6,
+      "time": "10:00 AM - 5:00 PM (GMT+8)",
+      "venue": "Wisma Central Grand Ballroom",
+      "address_or_link": "Wisma Central, Jalan Ampang, Kuala Lumpur",
+      "speaker": "COEV Rayne & Circle of Excellence",
+      "description": "Full-day flagship leadership academy: Blueprint for system duplication, executive presence, and organizational velocity.",
+      "image_url": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
+      "is_active": true
+    }
   ],
+  "blackout_dates": [],
+  "events": [
+    {
+      "id": "event-special-summit",
+      "date": "2026-11-28",
+      "time": "2:00 PM - 6:00 PM (GMT+8)",
+      "title": {
+        "en": "AA Annual Champions Rally & Gala",
+        "bm": "Perhimpunan Juara & Gala Tahunan AA",
+        "cn": "AA 团队年度领袖总动员与表彰盛典",
+        "ta": "AA Annual Champions Rally"
+      },
+      "speaker": "Presidential Advisory Council",
+      "venue": "Sunway Pyramid Convention Centre",
+      "location_or_link": "Sunway Pyramid Convention Centre, Bandar Sunway, Petaling Jaya",
+      "description": "Annual milestone celebration honoring all new pin rank advancements with exclusive guest keynotes and after-party.",
+      "image_url": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80"
+    }
+  ]
 };

@@ -27,11 +27,12 @@ interface ToolCardProps {
   tool: Tool;
 }
 
-export function getYouTubeId(url: string): string | null {
-  if (!url) return null;
-  const match = url.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
-  );
+export function getYouTubeId(rawUrl: string): string | null {
+  if (!rawUrl) return null;
+  const cleanUrl = rawUrl.replace(/\s+/g, '');
+  const match = cleanUrl.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?.*[?&]v=|watch\?v=|shorts\/))([\w-]{10,12})/
+  ) || cleanUrl.match(/(?:youtu\.be\/)([\w-]{10,12})/);
   return match ? match[1] : null;
 }
 
@@ -80,7 +81,7 @@ export function ToolCard({ tool }: ToolCardProps) {
 
   const handleWhatsAppShare = () => {
     const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
+    window.location.href = waUrl;
   };
 
   const handleCopyLink = async () => {
@@ -198,6 +199,50 @@ export function ToolCard({ tool }: ToolCardProps) {
           </div>
         )}
       </div>
+
+      {/* 1. YOUTUBE CONTENT BLOCK: TITLE, SPEAKER, DESCRIPTION, DIRECT EXTERNAL LINK */}
+      {tool.type === 'youtube' && (
+        <div className="p-4 pb-2">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span className="rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+              YouTube
+            </span>
+            <span className="rounded-full bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 text-[10px] font-bold">
+              {displayLangBadge}
+            </span>
+          </div>
+
+          <h3 className="text-base font-bold text-zinc-950 dark:text-zinc-50 leading-snug">
+            {title}
+          </h3>
+
+          {tool.speaker_name && (
+            <p className="mt-1 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+              🎙️ {tool.speaker_name}
+            </p>
+          )}
+
+          {description && (
+            <p className="mt-1.5 text-xs text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed">
+              {description}
+            </p>
+          )}
+
+          {url && (
+            <div className="mt-3">
+              <a
+                href={url.replace(/\s+/g, '')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/50 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 text-xs font-bold transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Watch on YouTube</span>
+              </a>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 2. DIRECT VIDEO EXTRA INFO */}
       {tool.type === 'video' && (

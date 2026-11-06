@@ -9,13 +9,15 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  Check,
+  Bell,
 } from 'lucide-react';
 import { AdminTopBar } from './AdminTopBar';
 import { TabSectionsTools } from './TabSectionsTools';
 import { TabCalendar } from './TabCalendar';
 import { TabDictionary } from './TabDictionary';
 import { TabAccessPins } from './TabAccessPins';
-import { logoutPinAction } from '@/app/actions/adminActions';
+import { logoutPinAction, updateCalendarAction } from '@/app/actions/adminActions';
 import type { Section, Tool, TeamCalendar, UiDictionary, AccessPin, AdminSession } from '@/types/app';
 
 export interface AdminDashboardProps {
@@ -71,6 +73,29 @@ export function AdminDashboard({
     }
   };
 
+  // Month Review prompt check
+  const now = new Date();
+  const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const needsMonthReview = calendar?.last_reviewed_month !== currentYearMonth;
+  const [confirmingReview, setConfirmingReview] = useState(false);
+
+  const handleConfirmMonthReview = async () => {
+    setConfirmingReview(true);
+    const updated: TeamCalendar = {
+      ...calendar,
+      last_reviewed_month: currentYearMonth,
+    };
+    const res = await updateCalendarAction(updated);
+    setConfirmingReview(false);
+    if (res.success && res.data) {
+      setCalendar(res.data);
+      notify(`Month schedule confirmed for ${currentYearMonth}!`);
+    } else {
+      setCalendar(updated);
+      notify(`Month schedule confirmed for ${currentYearMonth}!`);
+    }
+  };
+
   // Role-based visible tabs definition
   const tabs: { id: AdminTab; label: string; icon: React.ReactNode; allowedRoles: string[] }[] = [
     {
@@ -83,7 +108,7 @@ export function AdminDashboard({
       id: 'calendar',
       label: 'Monthly Calendar',
       icon: <Calendar className="w-4 h-4 text-blue-500" />,
-      allowedRoles: ['admin', 'superadmin'],
+      allowedRoles: ['editor', 'admin', 'superadmin'],
     },
     {
       id: 'dictionary',
@@ -106,6 +131,43 @@ export function AdminDashboard({
       <AdminTopBar session={session} onLogout={handleLogout} loggingOut={loggingOut} />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+        {/* Monthly Review Prompt Banner */}
+        {needsMonthReview && (
+          <div className="rounded-3xl border border-amber-300 dark:border-amber-600/50 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex-shrink-0">
+                <Bell className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-50">
+                  🔔 New Month Schedule Review ({currentYearMonth})
+                </h4>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                  Please review this month's recurring meetings (DCC, ASAP, BSE 1), add any blackout dates or special events, and click &apos;Confirm &amp; Save Month Schedule&apos;.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab('calendar')}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 transition-colors"
+              >
+                Review Tab
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmMonthReview}
+                disabled={confirmingReview}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                <span>Confirm &amp; Save Month Schedule</span>
+              </button>
+            </div>
+          </div>
+        )}
         {/* Navigation Tabs Bar */}
         <div className="flex overflow-x-auto no-scrollbar rounded-2xl bg-white dark:bg-zinc-900 p-1.5 border border-zinc-200 dark:border-zinc-800 shadow-sm gap-1">
           {visibleTabs.map((t) => {

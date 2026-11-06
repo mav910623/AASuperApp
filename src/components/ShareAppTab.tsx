@@ -21,7 +21,7 @@ export function ShareAppTab() {
   const whatsappMessage = `${appTitle} - Super App\n\n${shareDesc}\n\n👉 ${appUrl}`;
 
   const handleWhatsAppShare = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`, '_blank', 'noopener,noreferrer');
+    window.location.href = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
   };
 
   const handleCopyLink = async () => {
