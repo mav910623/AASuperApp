@@ -8,10 +8,20 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     display: 'standalone',
     background_color: '#09090b',
-    theme_color: '#09090b',
+    theme_color: '#1E40AF',
     orientation: 'portrait-primary',
     scope: '/',
     icons: [
+      {
+        src: '/icon',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+      {
+        src: '/apple-icon',
+        sizes: '180x180',
+        type: 'image/png',
+      },
       {
         src: '/icons/icon-192.png',
         sizes: '192x192',
@@ -24,11 +34,7 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/png',
         purpose: 'any',
       },
-      {
-        src: '/icons/icon.svg',
-        sizes: 'any',
-        type: 'image/svg+xml',
-      },
     ],
   };
 }
+

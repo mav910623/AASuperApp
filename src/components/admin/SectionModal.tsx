@@ -77,13 +77,31 @@ export function SectionModal({ isOpen, onClose, onSave, section }: SectionModalP
     setSaving(true);
     setError(null);
 
+    const generatedSlug =
+      slug.trim() ||
+      titles.en
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') ||
+      `section-${Date.now()}`;
+
     const payload: Partial<Section> = {
       ...(section?.id ? { id: section.id } : {}),
-      slug: slug.trim() || undefined,
+      slug: generatedSlug,
       icon_name: iconName,
       is_visible: isVisible,
-      title: titles,
-      description: descriptions,
+      title: {
+        en: titles.en.trim(),
+        bm: titles.bm.trim() || titles.en.trim(),
+        cn: titles.cn.trim() || titles.en.trim(),
+        ta: titles.ta.trim() || titles.en.trim(),
+      },
+      description: {
+        en: descriptions.en.trim(),
+        bm: descriptions.bm.trim() || descriptions.en.trim(),
+        cn: descriptions.cn.trim() || descriptions.en.trim(),
+        ta: descriptions.ta.trim() || descriptions.en.trim(),
+      },
     };
 
     const success = await onSave(payload);
@@ -200,7 +218,13 @@ export function SectionModal({ isOpen, onClose, onSave, section }: SectionModalP
                 <input
                   type="text"
                   value={titles[activeTab] || ''}
-                  onChange={(e) => setTitles({ ...titles, [activeTab]: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTitles({ ...titles, [activeTab]: val });
+                    if (activeTab === 'en' && (!section || !slug || slug === titles.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))) {
+                      setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+                    }
+                  }}
                   placeholder={`Section title in ${activeTab.toUpperCase()}...`}
                   className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />

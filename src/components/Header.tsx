@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Sun, Moon, Lock } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { AALogo } from '@/components/AALogo';
 import type { LanguageCode } from '@/types/app';
+
+export { AALogo };
 
 export function Header() {
   const { lang, setLang, t, dictionary } = useApp();
@@ -41,10 +44,8 @@ export function Header() {
     <header className="sticky top-0 z-30 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md transition-colors">
       <div className="mx-auto flex h-16 max-w-xl items-center justify-between px-4 sm:px-6">
         {/* App Title */}
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 font-black text-white shadow-sm flex-shrink-0">
-            <span className="text-base tracking-tighter">TH</span>
-          </div>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <AALogo size="md" />
           <h1 className="truncate text-lg font-bold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-xl">
             {t('app_title', 'Team Hub')}
           </h1>

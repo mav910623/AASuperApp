@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { AdminSession, AccessPinRole } from '@/types/app';
+import { AALogo } from '@/components/AALogo';
 
 interface AdminTopBarProps {
   session: AdminSession;
@@ -62,9 +63,7 @@ export function AdminTopBar({ session, onLogout, loggingOut }: AdminTopBarProps)
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6">
         {/* Brand & User identity */}
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 font-black text-white shadow-sm flex-shrink-0">
-            <span className="text-sm tracking-tight font-extrabold">TH</span>
-          </div>
+          <AALogo size="md" />
 
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-2">

@@ -4,12 +4,46 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import type { Section, Tool, TeamCalendar } from '@/types/app';
 import { Header } from '@/components/Header';
-import { FilterBar } from '@/components/FilterBar';
 import { ToolCard } from '@/components/ToolCard';
+import { SectionControls } from '@/components/SectionControls';
 import { BottomNav, type NavTab } from '@/components/BottomNav';
 import { CalendarTab } from '@/components/CalendarTab';
 import { ShareAppTab } from '@/components/ShareAppTab';
-import { Star, FolderX } from 'lucide-react';
+import {
+  Star,
+  FolderX,
+  Search,
+  X,
+  Share2,
+  Layers,
+  UserPlus,
+  Rocket,
+  Award,
+  Sparkles,
+  Compass,
+  Folder,
+  BookOpen,
+  Video,
+  Calendar,
+  Megaphone,
+  FileText,
+} from 'lucide-react';
+
+const SECTION_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  UserPlus,
+  Rocket,
+  Award,
+  Sparkles,
+  Layers,
+  Compass,
+  Folder,
+  BookOpen,
+  Video,
+  Calendar,
+  Star,
+  Megaphone,
+  FileText,
+};
 
 interface MainViewProps {
   initialSections: Section[];
@@ -24,56 +58,59 @@ export function MainView({
 }: MainViewProps) {
   const {
     lang,
+    getLocalized,
     contentLangFilter,
     setContentLangFilter,
     savedToolIds,
     t,
-    dictionary,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<NavTab>('tools');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSectionId, setActiveSectionId] = useState<string>('all');
-  const [activeTopic, setActiveTopic] = useState<string | null>(null);
 
-  // Check if Tamil dictionary entries are populated
-  const hasTamil = useMemo(() => {
-    return Object.values(dictionary).some(
-      (item) => typeof item.ta === 'string' && item.ta.trim().length > 0
-    );
-  }, [dictionary]);
+  // Filter visible sections dynamically from Supabase
+  const visibleSections = useMemo(() => {
+    return (initialSections || []).filter((s) => s.is_visible !== false);
+  }, [initialSections]);
 
-  // Extract dynamic topic tags from tools in the current section
-  const topicTags = useMemo(() => {
-    const relevantTools =
-      activeSectionId === 'all'
-        ? initialTools
-        : initialTools.filter((tItem) => tItem.section_id === activeSectionId);
-
-    const tagSet = new Set<string>();
-    relevantTools.forEach((tool) => {
-      const list = tool.topics?.[lang] || tool.topics?.en || [];
-      if (Array.isArray(list)) {
-        list.forEach((tag) => {
-          if (tag && tag.trim()) tagSet.add(tag.trim());
-        });
-      }
+  // Dynamic tool count per section
+  const sectionToolCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: initialTools.length };
+    visibleSections.forEach((sec) => {
+      counts[sec.id] = initialTools.filter((t) => t.section_id === sec.id && t.is_visible !== false).length;
     });
+    return counts;
+  }, [visibleSections, initialTools]);
 
-    return Array.from(tagSet);
-  }, [initialTools, activeSectionId, lang]);
+  // Current active section object (if specific section selected)
+  const activeSection = useMemo(() => {
+    if (activeSectionId === 'all') return null;
+    return visibleSections.find((s) => s.id === activeSectionId) || null;
+  }, [visibleSections, activeSectionId]);
+
+  // Tools in the active section (before search query)
+  const activeSectionTools = useMemo(() => {
+    if (activeSectionId === 'all') {
+      return initialTools.filter((t) => t.is_visible !== false);
+    }
+    return initialTools.filter(
+      (t) => t.section_id === activeSectionId && t.is_visible !== false
+    );
+  }, [initialTools, activeSectionId]);
 
   // Real-time filtered tools list
+  // If search query is present, search across ALL sections instantly by title or speaker name!
   const filteredTools = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
 
-    const result = initialTools.filter((tool) => {
-      // 1. Section Filter
-      if (activeSectionId !== 'all' && tool.section_id !== activeSectionId) {
-        return false;
-      }
+    // Search across ALL sections when user types in search bar
+    const pool = q
+      ? initialTools.filter((t) => t.is_visible !== false)
+      : activeSectionTools;
 
-      // 2. Content Language Filter
+    const result = pool.filter((tool) => {
+      // 1. Content Language Filter
       if (
         contentLangFilter !== 'all' &&
         (!tool.available_languages || !tool.available_languages.includes(contentLangFilter))
@@ -81,25 +118,14 @@ export function MainView({
         return false;
       }
 
-      // 3. Dynamic Topic Filter
-      if (activeTopic) {
-        const topicsInLang = tool.topics?.[lang] || tool.topics?.en || [];
-        const hasTopic =
-          Array.isArray(topicsInLang) &&
-          topicsInLang.some(
-            (tItem) => tItem.toLowerCase() === activeTopic.toLowerCase()
-          );
-        if (!hasTopic) return false;
-      }
-
-      // 4. Real-time Search Filter across Title, Description, Speaker Name, and Topics in all languages
+      // 2. Real-time Search Filter across Title and Speaker Name
       if (q) {
         const matchSpeaker = tool.speaker_name?.toLowerCase().includes(q);
-        const matchTitle = Object.values(tool.title || {}).some((v) =>
-          typeof v === 'string' && v.toLowerCase().includes(q)
+        const matchTitle = Object.values(tool.title || {}).some(
+          (v) => typeof v === 'string' && v.toLowerCase().includes(q)
         );
-        const matchDesc = Object.values(tool.description || {}).some((v) =>
-          typeof v === 'string' && v.toLowerCase().includes(q)
+        const matchDesc = Object.values(tool.description || {}).some(
+          (v) => typeof v === 'string' && v.toLowerCase().includes(q)
         );
         const matchTopics = Object.values(tool.topics || {}).some((arr) =>
           Array.isArray(arr) && arr.some((item) => item?.toLowerCase().includes(q))
@@ -113,7 +139,7 @@ export function MainView({
       return true;
     });
 
-    // 5. Featured tools ALWAYS sort to the top of the section, then by sort_order
+    // 3. Featured tools ALWAYS sort to the top, then by sort_order
     result.sort((a, b) => {
       if (a.is_featured !== b.is_featured) {
         return a.is_featured ? -1 : 1;
@@ -124,12 +150,36 @@ export function MainView({
     return result;
   }, [
     initialTools,
-    activeSectionId,
-    contentLangFilter,
-    activeTopic,
+    activeSectionTools,
     searchQuery,
-    lang,
+    contentLangFilter,
   ]);
+
+  // "WhatsApp Full Section" formatted sharing
+  const handleShareFullSection = () => {
+    const targetTools = activeSectionTools;
+    if (targetTools.length === 0) return;
+
+    const secTitle = activeSection
+      ? getLocalized(activeSection.title) || activeSection.slug
+      : t('all', 'All Resources');
+    const secDesc = activeSection ? getLocalized(activeSection.description) : '';
+
+    const header = `🔥 *${secTitle}*${secDesc ? `\n_${secDesc}_\n` : '\n'}\n`;
+
+    const toolsList = targetTools
+      .map((tool, idx) => {
+        const toolTitle = getLocalized(tool.title) || 'Resource';
+        const toolUrl = getLocalized(tool.url);
+        const speaker = tool.speaker_name ? ` (${tool.speaker_name})` : '';
+        return `${idx + 1}. *${toolTitle}*${speaker}\n👉 ${toolUrl}`;
+      })
+      .join('\n\n');
+
+    const fullMsg = `${header}${toolsList}\n\n_Shared via AA Team Hub_`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(fullMsg)}`;
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  };
 
   // Saved Tools List
   const savedTools = useMemo(() => {
@@ -151,21 +201,20 @@ export function MainView({
         {/* Tab 1: Tools (Main View) */}
         {activeTab === 'tools' && (
           <div className="space-y-4">
-            <FilterBar
+            <SectionControls
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
-              sections={initialSections}
+              visibleSections={visibleSections}
               activeSectionId={activeSectionId}
-              onSelectSection={(id) => {
-                setActiveSectionId(id);
-                setActiveTopic(null);
-              }}
-              contentLang={contentLangFilter}
+              onSelectSection={setActiveSectionId}
+              contentLangFilter={contentLangFilter}
               onContentLangChange={setContentLangFilter}
-              topicTags={topicTags}
-              activeTopic={activeTopic}
-              onSelectTopic={setActiveTopic}
-              hasTamil={hasTamil}
+              sectionToolCounts={sectionToolCounts}
+              totalToolsCount={initialTools.length}
+              activeSection={activeSection}
+              activeSectionToolsCount={activeSectionTools.length}
+              onShareFullSection={handleShareFullSection}
+              filteredCount={filteredTools.length}
             />
 
             <div className="space-y-4 px-4">
@@ -180,14 +229,13 @@ export function MainView({
                     {t('empty_section', 'No tools match your filter.')}
                   </h3>
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 max-w-xs">
-                    Try adjusting your search query, content language, or topic selection.
+                    Try adjusting your search query or content language filter.
                   </p>
-                  {(searchQuery || activeTopic || contentLangFilter !== 'all') && (
+                  {(searchQuery || contentLangFilter !== 'all') && (
                     <button
                       type="button"
                       onClick={() => {
                         setSearchQuery('');
-                        setActiveTopic(null);
                         setContentLangFilter('all');
                       }}
                       className="mt-4 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 transition-colors"

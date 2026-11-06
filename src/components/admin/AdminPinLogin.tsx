@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Lock, Unlock, ArrowLeft, Delete, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 import { verifyPinAction } from '@/app/actions/adminActions';
+import { AALogo } from '@/components/AALogo';
 import type { AdminSession } from '@/types/app';
 
 const KEYPAD_BUTTONS = [
@@ -139,17 +140,12 @@ export function AdminPinLogin({ onLoginSuccess }: AdminPinLoginProps) {
         }`}
       >
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="relative mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20">
-            {loading ? <Loader2 className="w-7 h-7 animate-spin" /> : <Lock className="w-7 h-7" />}
-            <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 dark:bg-zinc-100 text-[10px] text-white dark:text-zinc-950 font-bold border-2 border-white dark:border-zinc-900">
-              <Sparkles className="w-2.5 h-2.5" />
-            </div>
-          </div>
+          <AALogo size="lg" className="mb-3 shadow-lg shadow-blue-900/25" />
           <h1 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
-            Team Hub Admin
+            Admin Control Center
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Enter your team leader or editor access PIN
+            Enter your 6-digit access PIN to unlock the dashboard
           </p>
         </div>
 
@@ -226,43 +222,11 @@ export function AdminPinLogin({ onLoginSuccess }: AdminPinLoginProps) {
           )}
         </button>
 
-        {/* Quick Demo Presets */}
+        {/* Security Notice */}
         <div className="mt-5 pt-4 border-t border-zinc-200/80 dark:border-zinc-800/80 text-center">
-          <p className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-2">
-            Quick demo presets:
+          <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+            Protected Admin Portal • Authorized Access Only
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                setPin('888888');
-                handleSubmit('888888');
-              }}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900 transition-colors"
-            >
-              Super Admin (888888)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPin('123456');
-                handleSubmit('123456');
-              }}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
-            >
-              Admin (123456)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPin('111111');
-                handleSubmit('111111');
-              }}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900 transition-colors"
-            >
-              Editor (111111)
-            </button>
-          </div>
         </div>
       </div>
     </div>

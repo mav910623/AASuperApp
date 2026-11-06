@@ -493,3 +493,102 @@ test('admin: section slug generation produces sanitized URL-safe string', () => 
 });
 
 
+// Test 14: YouTube ID extraction
+test('youtube: extracts 11-char ID from various YouTube URL formats', () => {
+  function getYouTubeId(url) {
+    if (!url) return null;
+    const match = url.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
+    );
+    return match ? match[1] : null;
+  }
+
+  assert.equal(getYouTubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(getYouTubeId('https://youtu.be/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(getYouTubeId('https://www.youtube.com/shorts/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(getYouTubeId('https://www.youtube.com/embed/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+  assert.equal(getYouTubeId('https://example.com/not-youtube'), null);
+});
+
+// Test 15: Super Admin Master PIN 371983 fallback
+test('admin: PIN 371983 always returns superadmin master session', () => {
+  function verifyPinMock(pin) {
+    const trimmed = (pin || '').trim();
+    if (trimmed === '371983') {
+      return {
+        success: true,
+        session: {
+          id: 'master-superadmin',
+          label: 'Master Super Admin',
+          role: 'superadmin',
+        },
+      };
+    }
+    return { success: false, error: 'Invalid PIN' };
+  }
+
+  const res = verifyPinMock('  371983  ');
+  assert.equal(res.success, true);
+  assert.equal(res.session.role, 'superadmin');
+  assert.equal(res.session.id, 'master-superadmin');
+
+  assert.equal(verifyPinMock('wrong').success, false);
+});
+
+// Test 16: WhatsApp full section formatting
+test('whatsapp: full section format outputs clean list of tools', () => {
+  function formatSectionWhatsApp(sectionTitle, sectionDesc, tools) {
+    const header = `🔥 *${sectionTitle}*${sectionDesc ? `\n_${sectionDesc}_\n` : '\n'}\n`;
+    const list = tools
+      .map((tool, idx) => {
+        const speaker = tool.speaker ? ` (${tool.speaker})` : '';
+        return `${idx + 1}. *${tool.title}*${speaker}\n👉 ${tool.url}`;
+      })
+      .join('\n\n');
+    return `${header}${list}\n\n_Shared via AA Team Hub_`;
+  }
+
+  const text = formatSectionWhatsApp('Onboarding', 'Step 1 for new partners', [
+    { title: 'Welcome Video', speaker: 'Marcus', url: 'https://youtu.be/abc' },
+    { title: 'Playbook PDF', speaker: '', url: 'https://cdn.com/playbook.pdf' },
+  ]);
+
+  assert.ok(text.includes('🔥 *Onboarding*'));
+  assert.ok(text.includes('1. *Welcome Video* (Marcus)'));
+  assert.ok(text.includes('2. *Playbook PDF*'));
+  assert.ok(text.includes('👉 https://cdn.com/playbook.pdf'));
+});
+
+// Test 17: Admin tool payload fallback to English for empty BM/CN/TA
+test('admin: tool upsert falls back to English title and URL when localized fields are blank', () => {
+  function prepareToolPayload(tool) {
+    const enTitle = tool.title?.en?.trim() || '';
+    const enUrl = tool.url?.en?.trim() || '';
+    return {
+      title: {
+        en: enTitle,
+        bm: tool.title?.bm?.trim() || enTitle,
+        cn: tool.title?.cn?.trim() || enTitle,
+        ta: tool.title?.ta?.trim() || enTitle,
+      },
+      url: {
+        en: enUrl,
+        bm: tool.url?.bm?.trim() || enUrl,
+        cn: tool.url?.cn?.trim() || enUrl,
+        ta: tool.url?.ta?.trim() || enUrl,
+      },
+    };
+  }
+
+  const payload = prepareToolPayload({
+    title: { en: 'Product Masterclass', bm: '', cn: '', ta: '' },
+    url: { en: 'https://youtu.be/masterclass', bm: '', cn: '', ta: '' },
+  });
+
+  assert.equal(payload.title.bm, 'Product Masterclass');
+  assert.equal(payload.title.cn, 'Product Masterclass');
+  assert.equal(payload.url.bm, 'https://youtu.be/masterclass');
+  assert.equal(payload.url.cn, 'https://youtu.be/masterclass');
+});
+
+

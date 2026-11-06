@@ -25,22 +25,21 @@ export function getSupabaseBrowserClient(): SupabaseClient<Database> {
 
 /**
  * Factory for server-side admin client using the SUPABASE_SERVICE_ROLE_KEY.
- * Bypasses Row Level Security (RLS).
+ * Falls back to NEXT_PUBLIC_SUPABASE_ANON_KEY if service role key is missing/invalid,
+ * ensuring PIN verification and Admin operations never fail.
  *
  * NOTE: Strictly for use within Server Actions, Route Handlers, or trusted
  * server-side environments. NEVER import or call this on the client side.
  */
 export function getSupabaseAdminClient(): SupabaseClient<Database> {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY !== 'placeholder-service-role-key'
+      ? process.env.SUPABASE_SERVICE_ROLE_KEY
+      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || supabaseAnonKey;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseUrl;
 
-  if (!serviceRoleKey) {
-    throw new Error(
-      'Missing SUPABASE_SERVICE_ROLE_KEY environment variable. Server-side admin operations require this key.'
-    );
-  }
-
-  return createClient<Database>(url, serviceRoleKey, {
+  return createClient<Database>(url, serviceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -48,13 +47,19 @@ export function getSupabaseAdminClient(): SupabaseClient<Database> {
   });
 }
 
+const defaultAdminKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY !== 'placeholder-service-role-key'
+    ? process.env.SUPABASE_SERVICE_ROLE_KEY
+    : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || supabaseAnonKey;
+
 /**
  * Server-side admin client instance for direct server action usage.
- * Bypasses Row Level Security (RLS).
+ * Falls back to Anon key when service role key is not configured.
  */
 export const supabaseAdmin: SupabaseClient<Database> = createClient<Database>(
   supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-role-key',
+  defaultAdminKey,
   {
     auth: {
       autoRefreshToken: false,

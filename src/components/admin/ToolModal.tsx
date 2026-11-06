@@ -173,6 +173,39 @@ export function ToolModal({ isOpen, onClose, onSave, tool, sections }: ToolModal
         .map((s) => s.trim())
         .filter(Boolean);
 
+    const enTitle = titles.en.trim();
+    const enUrl = urls.en.trim();
+    const enDesc = descriptions.en.trim();
+    const enScript = whatsappScripts.en.trim();
+
+    const normalizedTitles: Record<LanguageCode, string> = {
+      en: enTitle,
+      bm: titles.bm.trim() || enTitle,
+      cn: titles.cn.trim() || enTitle,
+      ta: titles.ta.trim() || enTitle,
+    };
+
+    const normalizedUrls: Record<LanguageCode, string> = {
+      en: enUrl,
+      bm: urls.bm.trim() || enUrl,
+      cn: urls.cn.trim() || enUrl,
+      ta: urls.ta.trim() || enUrl,
+    };
+
+    const normalizedDescriptions: Record<LanguageCode, string> = {
+      en: enDesc,
+      bm: descriptions.bm.trim() || enDesc,
+      cn: descriptions.cn.trim() || enDesc,
+      ta: descriptions.ta.trim() || enDesc,
+    };
+
+    const normalizedScripts: Record<LanguageCode, string> = {
+      en: enScript,
+      bm: whatsappScripts.bm.trim() || enScript,
+      cn: whatsappScripts.cn.trim() || enScript,
+      ta: whatsappScripts.ta.trim() || enScript,
+    };
+
     const payload: Partial<Tool> = {
       ...(tool?.id ? { id: tool.id } : {}),
       section_id: sectionId,
@@ -182,16 +215,16 @@ export function ToolModal({ isOpen, onClose, onSave, tool, sections }: ToolModal
       is_featured: isFeatured,
       is_visible: isVisible,
       available_languages: availableLanguages,
-      title: titles,
-      description: descriptions,
-      url: urls,
+      title: normalizedTitles,
+      description: normalizedDescriptions,
+      url: normalizedUrls,
       topics: {
         en: parseTopics(topicsStr.en),
         bm: parseTopics(topicsStr.bm),
         cn: parseTopics(topicsStr.cn),
         ta: parseTopics(topicsStr.ta),
       },
-      whatsapp_script: whatsappScripts,
+      whatsapp_script: normalizedScripts,
       thumbnail_url: thumbnailUrl.trim(),
     };
 

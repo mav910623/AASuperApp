@@ -141,6 +141,27 @@ export const DEFAULT_UI_DICTIONARY: Record<string, UiDictionary> = {
     cn: '立即查看',
     ta: 'திற',
   },
+  btn_share_section: {
+    key: 'btn_share_section',
+    en: 'WhatsApp Full Section',
+    bm: 'WhatsApp Seluruh Bahagian',
+    cn: 'WhatsApp 分享专区',
+    ta: 'முழுப் பிரிவையும் வாட்ஸ்அப் செய்க',
+  },
+  read_pdf: {
+    key: 'read_pdf',
+    en: 'Read PDF eBook',
+    bm: 'Baca eBook PDF',
+    cn: '阅读 PDF 电子书',
+    ta: 'PDF மின்புத்தகத்தைப் படியுங்கள்',
+  },
+  listen_audio: {
+    key: 'listen_audio',
+    en: 'Listen Audio',
+    bm: 'Dengar Audio',
+    cn: '收听音频',
+    ta: 'ஆடியோவைக் கேளுங்கள்',
+  },
   empty_section: {
     key: 'empty_section',
     en: 'No tools match your filter.',
