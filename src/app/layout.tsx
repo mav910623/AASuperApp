@@ -32,23 +32,24 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Team Hub - Super App",
+  title: "AA Team Hub - Super App",
   description: "Team resource portal, daily tools, and training hub",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Team Hub",
+    title: "AA Hub",
   },
   formatDetection: {
     telephone: false,
   },
   icons: {
     icon: [
-      { url: "/icons/icon.svg", type: "image/svg+xml" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
   },
 };
 

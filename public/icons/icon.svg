@@ -1,35 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#18181b"/>
-      <stop offset="100%" stop-color="#09090b"/>
-    </linearGradient>
-    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3b82f6"/>
-      <stop offset="50%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#a855f7"/>
-    </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="12" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-  </defs>
-  
-  <!-- Rounded App Icon Background -->
-  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
-  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="#27272a" stroke-width="4"/>
-  
-  <!-- Subtle glowing core -->
-  <circle cx="256" cy="256" r="140" fill="url(#accentGrad)" opacity="0.12" filter="url(#glow)"/>
-
-  <!-- Stylized Modern Emblem (Layered "T" and "H" / Portal Hub) -->
-  <g fill="none" stroke="url(#accentGrad)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Outer hexagonal or hub connector -->
-    <path d="M 160 160 L 352 160" />
-    <path d="M 256 160 L 256 352" />
-    <path d="M 160 256 L 352 256" />
-    <path d="M 160 220 L 160 352" />
-    <path d="M 352 220 L 352 352" />
-  </g>
-  <circle cx="256" cy="256" r="22" fill="#ffffff" />
+  <rect width="512" height="512" rx="112" fill="#1E40AF"/>
+  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="240" fill="#FFFFFF" letter-spacing="-6">AA</text>
 </svg>

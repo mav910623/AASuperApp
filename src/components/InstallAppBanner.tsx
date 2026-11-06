@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useSyncExternalStore } from 'react';
-import Image from 'next/image';
 import { Share, PlusSquare, X, Download } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { AALogo } from '@/components/AALogo';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -108,15 +108,7 @@ export function InstallAppBanner() {
         </button>
 
         <div className="flex items-start gap-3.5 pr-6">
-          <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-zinc-900 border border-zinc-700/50">
-            <Image
-              src="/icons/icon.svg"
-              alt="Team Hub"
-              width={48}
-              height={48}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <AALogo size="lg" />
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
               {t('install_app')}

@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Team Hub',
-    short_name: 'TeamHub',
+    name: 'AA Team Hub',
+    short_name: 'AA Hub',
     description: 'Team resource portal, daily tools, and training hub',
     start_url: '/',
     display: 'standalone',
@@ -23,13 +23,13 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/png',
       },
       {
-        src: '/icons/icon-192.png',
+        src: '/icon-192',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'maskable',
       },
       {
-        src: '/icons/icon-512.png',
+        src: '/icon-512',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
@@ -37,4 +37,5 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
   };
 }
+
 

@@ -706,33 +706,25 @@ export async function updateCalendarAction(
     };
 
     let result;
-    const targetId = isValidUuid(cleanedCalendar.id) ? cleanedCalendar.id : undefined;
+    const { data: existing } = await client
+      .from('team_calendar')
+      .select('id')
+      .limit(1)
+      .maybeSingle();
 
-    if (targetId) {
+    const hasExisting = existing?.id !== undefined && existing?.id !== null;
+
+    if (hasExisting) {
       result = await (client.from('team_calendar') as any)
         .update(payload)
-        .eq('id', targetId)
+        .eq('id', existing.id)
         .select()
         .single();
     } else {
-      const { data: existing } = await client
-        .from('team_calendar')
-        .select('id')
-        .limit(1)
-        .maybeSingle();
-
-      if (existing?.id && isValidUuid(existing.id)) {
-        result = await (client.from('team_calendar') as any)
-          .update(payload)
-          .eq('id', existing.id)
-          .select()
-          .single();
-      } else {
-        result = await (client.from('team_calendar') as any)
-          .insert(payload)
-          .select()
-          .single();
-      }
+      result = await (client.from('team_calendar') as any)
+        .insert(payload)
+        .select()
+        .single();
     }
 
     if (result.error) {
@@ -742,8 +734,8 @@ export async function updateCalendarAction(
         image_url: payload.image_url,
         events: payload.events,
       };
-      const fallbackRes = targetId
-        ? await (client.from('team_calendar') as any).update(basePayload).eq('id', targetId).select().single()
+      const fallbackRes = hasExisting
+        ? await (client.from('team_calendar') as any).update(basePayload).eq('id', existing.id).select().single()
         : await (client.from('team_calendar') as any).insert(basePayload).select().single();
 
       if (fallbackRes.error) {

@@ -4,6 +4,7 @@ import React, { useState, useSyncExternalStore } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Share2, Copy, Check, Smartphone } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { AALogo } from '@/components/AALogo';
 
 export function ShareAppTab() {
   const { t } = useApp();
@@ -47,9 +48,7 @@ export function ShareAppTab() {
     <div className="w-full space-y-6 px-4 py-4 animate-in fade-in duration-200">
       {/* Title */}
       <div className="text-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 font-black text-white shadow-md mb-2">
-          <span className="text-xl tracking-tighter">TH</span>
-        </div>
+        <AALogo size="lg" className="mx-auto mb-2" />
         <h2 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
           {t('share_app_title', 'Share Team Hub')}
         </h2>
