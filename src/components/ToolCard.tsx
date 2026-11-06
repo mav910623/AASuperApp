@@ -237,7 +237,7 @@ export function ToolCard({ tool }: ToolCardProps) {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/50 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 text-xs font-bold transition-colors"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span>Watch on YouTube</span>
+                <span>Open in YouTube</span>
               </a>
             </div>
           )}

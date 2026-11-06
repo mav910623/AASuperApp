@@ -1083,79 +1083,23 @@ export const DEFAULT_TOOLS: Tool[] = [
 ];
 
 export const DEFAULT_CALENDAR: TeamCalendar = {
-  "id": "1",
-  "month_label": {
-    "en": "Team Calendar & Monthly Schedule",
-    "bm": "Jadual & Kalendar Bulanan Pasukan",
-    "cn": "团队月度活动与培训总日程",
-    "ta": "குழு மாதாந்திர நிகழ்வுகள்"
+  id: "1",
+  month_label: {
+    en: "Team Calendar & Monthly Schedule",
+    bm: "Jadual & Kalendar Bulanan Pasukan",
+    cn: "团队月度活动与培训总日程",
+    ta: "குழு மாதாந்திர நிகழ்வுகள்"
   },
-  "image_url": {
-    "en": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
-    "bm": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
-    "cn": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
-    "ta": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85"
+  image_url: {
+    en: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
+    bm: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
+    cn: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85",
+    ta: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=1600&auto=format&fit=crop&q=85"
   },
-  "default_view": "dynamic",
-  "last_reviewed_month": "",
-  "recurring_rules": [
-    {
-      "id": "rec-dcc",
-      "title": "Daily Core Check-in (DCC)",
-      "frequency": "daily",
-      "time": "7:30 AM - 8:00 AM (GMT+8)",
-      "venue": "Zoom Online Meeting",
-      "address_or_link": "https://zoom.us/j/888999111",
-      "speaker": "COEV Leaders",
-      "description": "Daily morning alignment, gratitude, mindset conditioning, and 3 key daily action goals.",
-      "image_url": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80",
-      "is_active": true
-    },
-    {
-      "id": "rec-asap",
-      "title": "Weekly ASAP Action Meeting",
-      "frequency": "weekly",
-      "day_of_week": 4,
-      "time": "8:30 PM - 10:00 PM (GMT+8)",
-      "venue": "Nu Skin KL Experience Center / Zoom",
-      "address_or_link": "Nu Skin Malaysia, Level 10, Menara Hua Sun, Jalan Loke Yew, Kuala Lumpur",
-      "speaker": "Core Achievers & Special Guests",
-      "description": "Weekly All Star Action Plan: Business opportunity overview, product science testimonials, and fast-track coaching.",
-      "image_url": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80",
-      "is_active": true
-    },
-    {
-      "id": "rec-bse",
-      "title": "BSE 1 (Business School of Excellence)",
-      "frequency": "monthly_nth_weekday",
-      "nth_week": 3,
-      "day_of_week": 6,
-      "time": "10:00 AM - 5:00 PM (GMT+8)",
-      "venue": "Wisma Central Grand Ballroom",
-      "address_or_link": "Wisma Central, Jalan Ampang, Kuala Lumpur",
-      "speaker": "COEV Rayne & Circle of Excellence",
-      "description": "Full-day flagship leadership academy: Blueprint for system duplication, executive presence, and organizational velocity.",
-      "image_url": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
-      "is_active": true
-    }
-  ],
-  "blackout_dates": [],
-  "events": [
-    {
-      "id": "event-special-summit",
-      "date": "2026-11-28",
-      "time": "2:00 PM - 6:00 PM (GMT+8)",
-      "title": {
-        "en": "AA Annual Champions Rally & Gala",
-        "bm": "Perhimpunan Juara & Gala Tahunan AA",
-        "cn": "AA 团队年度领袖总动员与表彰盛典",
-        "ta": "AA Annual Champions Rally"
-      },
-      "speaker": "Presidential Advisory Council",
-      "venue": "Sunway Pyramid Convention Centre",
-      "location_or_link": "Sunway Pyramid Convention Centre, Bandar Sunway, Petaling Jaya",
-      "description": "Annual milestone celebration honoring all new pin rank advancements with exclusive guest keynotes and after-party.",
-      "image_url": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80"
-    }
-  ]
+  default_view: "dynamic",
+  last_reviewed_month: "",
+  recurring_rules: [],
+  exceptions: [],
+  blackout_dates: [],
+  events: []
 };

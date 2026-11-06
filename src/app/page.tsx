@@ -1,3 +1,6 @@
+export const instant = false;
+
+import { connection } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import type { Section, Tool, TeamCalendar } from '@/types/app';
 import {
@@ -6,13 +9,14 @@ import {
   DEFAULT_CALENDAR,
 } from '@/lib/mockData';
 import { MainView } from '@/components/MainView';
+import { unpackCalendar } from '@/lib/calendarGenerator';
 
 async function getAppData(): Promise<{
   sections: Section[];
   tools: Tool[];
   calendar: TeamCalendar;
 }> {
-  "use cache";
+  await connection();
   let sections: Section[] = DEFAULT_SECTIONS;
   let tools: Tool[] = DEFAULT_TOOLS;
   let calendar: TeamCalendar = DEFAULT_CALENDAR;
@@ -35,7 +39,7 @@ async function getAppData(): Promise<{
     }
 
     if (!calRes.error && calRes.data && calRes.data.length > 0) {
-      calendar = calRes.data[0] as TeamCalendar;
+      calendar = unpackCalendar(calRes.data[0] as TeamCalendar);
     }
   } catch (err) {
     console.warn('[Home page] Error loading Supabase data, using default seeds:', err);

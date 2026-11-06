@@ -39,9 +39,9 @@ const TOOL_TYPES: { type: ToolType; label: string; icon: React.ReactNode }[] = [
 ];
 
 const TOOL_LANG_OPTIONS: { code: LanguageCode; label: string }[] = [
-  { code: 'en', label: 'EN (English)' },
-  { code: 'cn', label: '中文 (Chinese)' },
-  { code: 'bm', label: 'BM (Malay)' },
+  { code: 'en', label: 'EN' },
+  { code: 'cn', label: '中文' },
+  { code: 'bm', label: 'BM' },
 ];
 
 export function ToolModal({ isOpen, onClose, onSave, tool, sections }: ToolModalProps) {

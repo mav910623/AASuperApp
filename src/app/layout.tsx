@@ -1,4 +1,7 @@
+export const instant = false;
+
 import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -50,7 +53,7 @@ export const metadata: Metadata = {
 };
 
 async function getUiDictionary(): Promise<UiDictionary[]> {
-  "use cache";
+  await connection();
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")

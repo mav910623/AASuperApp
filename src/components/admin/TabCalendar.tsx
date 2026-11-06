@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   Upload,
@@ -9,18 +9,29 @@ import {
   Plus,
   Trash2,
   Edit,
-  ExternalLink,
-  ImageIcon,
   Sparkles,
   Ban,
   Clock,
   MapPin,
+  RotateCcw,
+  Bell,
+  ArrowRight,
 } from 'lucide-react';
-import { EventHighlightModal } from './EventHighlightModal';
 import { RecurringRuleModal } from './RecurringRuleModal';
-import { LANGUAGES } from './ToolBasicInfo';
+import { InstanceOverrideModal } from './InstanceOverrideModal';
 import { updateCalendarAction, uploadMediaAction } from '@/app/actions/adminActions';
-import type { TeamCalendar, CalendarEvent, RecurringRule, BlackoutDate, LanguageCode } from '@/types/app';
+import type {
+  TeamCalendar,
+  CalendarEvent,
+  MeetingSeries,
+  MeetingException,
+  BlackoutDate,
+} from '@/types/app';
+import {
+  generateMonthSchedule,
+  type GeneratedScheduleEvent,
+} from '@/lib/calendarGenerator';
+import { useApp } from '@/context/AppContext';
 
 interface TabCalendarProps {
   calendar: TeamCalendar;
@@ -29,33 +40,54 @@ interface TabCalendarProps {
 }
 
 export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'recurring' | 'blackout' | 'special' | 'flyer'>('recurring');
+  const { getLocalized } = useApp();
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentYearMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+  const needsMonthReview = calendar.last_reviewed_month !== currentYearMonth;
+
+  const [activeSubTab, setActiveSubTab] = useState<'schedule' | 'recurring' | 'blackout' | 'flyer'>('schedule');
 
   const [monthLabels, setMonthLabels] = useState(calendar.month_label || { en: '', bm: '', cn: '', ta: '' });
   const [imageUrls, setImageUrls] = useState(calendar.image_url || { en: '', bm: '', cn: '', ta: '' });
   const [defaultView, setDefaultView] = useState<'dynamic' | 'flyer'>(calendar.default_view || 'dynamic');
 
-  const [recurringRules, setRecurringRules] = useState<RecurringRule[]>(calendar.recurring_rules || []);
+  const [recurringRules, setRecurringRules] = useState<MeetingSeries[]>(calendar.recurring_rules || []);
+  const [exceptions, setExceptions] = useState<MeetingException[]>(calendar.exceptions || []);
   const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>(calendar.blackout_dates || []);
   const [events, setEvents] = useState<CalendarEvent[]>(calendar.events || []);
 
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Recurring Rule Modal
+  // Meeting Rule Modal
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
-  const [editingRule, setEditingRule] = useState<RecurringRule | null>(null);
+  const [editingRule, setEditingRule] = useState<MeetingSeries | null>(null);
 
-  // Special Event Modal
-  const [eventModalOpen, setEventModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  // Instance Override Modal
+  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
+  const [editingInstance, setEditingInstance] = useState<GeneratedScheduleEvent | null>(null);
 
-  // Blackout Date Inline Add Form
+  // Blackout Date Inline Form
   const [newBlackoutDate, setNewBlackoutDate] = useState('');
   const [newBlackoutReason, setNewBlackoutReason] = useState('');
   const [newBlackoutRuleId, setNewBlackoutRuleId] = useState('all');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Current month schedule preview
+  const currentMonthSchedule = useMemo(() => {
+    return generateMonthSchedule(
+      currentYear,
+      currentMonth,
+      recurringRules,
+      blackoutDates,
+      events,
+      exceptions
+    );
+  }, [currentYear, currentMonth, recurringRules, blackoutDates, events, exceptions]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -94,8 +126,10 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
       image_url: imageUrls,
       default_view: defaultView,
       recurring_rules: recurringRules,
+      exceptions,
       blackout_dates: blackoutDates,
       events,
+      last_reviewed_month: calendar.last_reviewed_month || currentYearMonth,
     };
 
     const res = await updateCalendarAction(payload);
@@ -109,7 +143,32 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
     }
   };
 
-  const handleSaveRule = (savedRule: RecurringRule) => {
+  const handleConfirmMonthReview = async () => {
+    setSaving(true);
+    const payload: Partial<TeamCalendar> = {
+      ...(calendar.id ? { id: calendar.id } : {}),
+      month_label: monthLabels,
+      image_url: imageUrls,
+      default_view: defaultView,
+      recurring_rules: recurringRules,
+      exceptions,
+      blackout_dates: blackoutDates,
+      events,
+      last_reviewed_month: currentYearMonth,
+    };
+
+    const res = await updateCalendarAction(payload);
+    setSaving(false);
+
+    if (res.success && res.data) {
+      setCalendar(res.data);
+      onNotify(`Month schedule confirmed and saved for ${currentYearMonth}!`);
+    } else {
+      onNotify('Failed to save month confirmation', true);
+    }
+  };
+
+  const handleSaveRule = (savedRule: MeetingSeries) => {
     setRecurringRules((prev) => {
       const exists = prev.some((r) => r.id === savedRule.id);
       if (exists) {
@@ -117,18 +176,57 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
       }
       return [...prev, savedRule];
     });
-    onNotify('Recurring meeting saved');
+    onNotify('Meeting rule saved');
   };
 
   const handleDeleteRule = (id: string) => {
     setRecurringRules((prev) => prev.filter((r) => r.id !== id));
-    onNotify('Recurring meeting removed');
+    onNotify('Meeting rule removed');
   };
 
   const handleToggleRuleActive = (id: string) => {
     setRecurringRules((prev) =>
       prev.map((r) => (r.id === id ? { ...r, is_active: !r.is_active } : r))
     );
+  };
+
+  const handleOpenOverride = (instance: GeneratedScheduleEvent) => {
+    setEditingInstance(instance);
+    setOverrideModalOpen(true);
+  };
+
+  const handleSaveException = (exception: MeetingException) => {
+    setExceptions((prev) => [
+      ...prev.filter(
+        (e) => !(e.series_id === exception.series_id && e.original_date === exception.original_date)
+      ),
+      exception,
+    ]);
+    onNotify('Schedule override applied for this occurrence');
+  };
+
+  const handleSkipInstance = (instance: GeneratedScheduleEvent) => {
+    const skipEx: MeetingException = {
+      id: `ex-${Date.now()}`,
+      series_id: instance.series_id || instance.rule_id || 'all',
+      original_date: instance.original_date || instance.date,
+      action: 'cancel',
+      reason: 'Skipped for this date',
+    };
+    setExceptions((prev) => [
+      ...prev.filter(
+        (e) => !(e.series_id === skipEx.series_id && e.original_date === skipEx.original_date)
+      ),
+      skipEx,
+    ]);
+    onNotify(`Meeting on ${instance.date} skipped for this month`);
+  };
+
+  const handleRestoreInstance = (seriesId: string, originalDate: string) => {
+    setExceptions((prev) =>
+      prev.filter((e) => !(e.series_id === seriesId && e.original_date === originalDate))
+    );
+    onNotify(`Restored occurrence for ${originalDate}`);
   };
 
   const handleAddBlackout = (e: React.FormEvent) => {
@@ -170,6 +268,36 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
 
   return (
     <div className="space-y-6">
+      {/* Monthly Review Prompt Banner */}
+      {needsMonthReview && (
+        <div className="rounded-3xl border border-amber-300 dark:border-amber-600/50 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex-shrink-0">
+              <Bell className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-50">
+                🔔 Review Month Schedule ({currentYearMonth})
+              </h4>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                Please review this month&apos;s schedule preview below, reschedule or skip any occurrences, and confirm the month schedule.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleConfirmMonthReview}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 active:scale-95 disabled:opacity-50 flex-shrink-0 self-start sm:self-auto"
+          >
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
+            <span>Confirm &amp; Save Month Schedule</span>
+          </button>
+        </div>
+      )}
+
+      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-4">
         <div>
           <h2 className="text-base sm:text-lg font-bold text-zinc-950 dark:text-zinc-50 flex items-center gap-2">
@@ -177,7 +305,7 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
             <span>Monthly Calendar &amp; Schedule Management</span>
           </h2>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Manage recurring meetings, blackout overrides, special events, and the monthly flyer.
+            Manage meeting rules, monthly schedule overrides, blackout dates, and the flyer.
           </p>
         </div>
 
@@ -190,7 +318,7 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
           {saving ? (
             <>
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Saving Calendar...</span>
+              <span>Saving...</span>
             </>
           ) : (
             <>
@@ -201,22 +329,39 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
         </button>
       </div>
 
+      {/* Subtabs */}
       <div className="flex overflow-x-auto no-scrollbar gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('schedule')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            activeSubTab === 'schedule'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400'
+          }`}
+        >
+          <span>📅</span>
+          <span>Current Month Schedule ({currentMonthSchedule.length})</span>
+        </button>
         <button
           type="button"
           onClick={() => setActiveSubTab('recurring')}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'recurring' ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs' : 'text-zinc-600 dark:text-zinc-400'
+            activeSubTab === 'recurring'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400'
           }`}
         >
           <span>🔄</span>
-          <span>Recurring Meetings ({recurringRules.length})</span>
+          <span>Meeting Rules &amp; Series ({recurringRules.length})</span>
         </button>
         <button
           type="button"
           onClick={() => setActiveSubTab('blackout')}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'blackout' ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs' : 'text-zinc-600 dark:text-zinc-400'
+            activeSubTab === 'blackout'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400'
           }`}
         >
           <span>🚫</span>
@@ -224,34 +369,137 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
         </button>
         <button
           type="button"
-          onClick={() => setActiveSubTab('special')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'special' ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs' : 'text-zinc-600 dark:text-zinc-400'
-          }`}
-        >
-          <span>⭐</span>
-          <span>Special Events ({events.length})</span>
-        </button>
-        <button
-          type="button"
           onClick={() => setActiveSubTab('flyer')}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'flyer' ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs' : 'text-zinc-600 dark:text-zinc-400'
+            activeSubTab === 'flyer'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400'
           }`}
         >
           <span>🖼️</span>
-          <span>Flyer &amp; Default View</span>
+          <span>Flyer &amp; Settings</span>
         </button>
       </div>
+
+      {/* SUB-SECTION 0: CURRENT-MONTH SCHEDULE PREVIEW & INSTANCE OVERRIDES */}
+      {activeSubTab === 'schedule' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
+                Current Month Schedule ({currentYearMonth})
+              </h3>
+              <p className="text-xs text-zinc-500">
+                1-tap override or reschedule any specific date occurrence without affecting future months.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setEditingRule(null); setRuleModalOpen(true); }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs self-start sm:self-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Meeting Rule</span>
+            </button>
+          </div>
+
+          {currentMonthSchedule.length === 0 ? (
+            <div className="p-8 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/40">
+              <p className="text-xs text-zinc-500 mb-2">No meetings generated for this month.</p>
+              <button
+                type="button"
+                onClick={() => { setEditingRule(null); setRuleModalOpen(true); }}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-bold"
+              >
+                Create your first meeting rule
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {currentMonthSchedule.map((ev) => {
+                const titleStr = getLocalized(ev.title);
+                const hasException = Boolean(ev.is_modified);
+
+                return (
+                  <div
+                    key={ev.id}
+                    className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                      hasException
+                        ? 'border-purple-300 dark:border-purple-800/60 bg-purple-50/40 dark:bg-purple-950/20 shadow-xs'
+                        : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300">
+                          {ev.date}
+                        </span>
+                        {ev.time && (
+                          <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-zinc-400" />
+                            <span>{ev.time}</span>
+                          </span>
+                        )}
+                        {hasException && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 dark:bg-purple-900/60 dark:text-purple-200">
+                            Rescheduled ({ev.reason || 'Overridden'})
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{titleStr}</h4>
+                      <div className="flex items-center gap-3 mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 flex-wrap">
+                        {ev.speaker && <span>🎙️ {ev.speaker}</span>}
+                        {ev.venue && <span>📍 {ev.venue}</span>}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenOverride(ev)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-all active:scale-95"
+                      >
+                        <Edit className="w-3 h-3 text-amber-500" />
+                        <span>Reschedule / Edit</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSkipInstance(ev)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-xs font-bold transition-all active:scale-95"
+                      >
+                        <Ban className="w-3 h-3" />
+                        <span>Skip Date</span>
+                      </button>
+
+                      {hasException && ev.original_date && (
+                        <button
+                          type="button"
+                          onClick={() => handleRestoreInstance(ev.series_id || ev.rule_id || '', ev.original_date!)}
+                          title="Restore original rule"
+                          className="p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* SUB-SECTION 1: RECURRING MEETINGS */}
       {activeSubTab === 'recurring' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Recurring Team Meetings</h3>
+              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Meeting Rules &amp; Series</h3>
               <p className="text-xs text-zinc-500">
-                Repeats into concrete dates (Daily DCC, Weekly Thursday ASAP, 3rd Saturday BSE 1).
+                Meeting rules that expand automatically into monthly calendar schedules.
               </p>
             </div>
             <button
@@ -263,7 +511,7 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Add Recurring Rule</span>
+              <span>Add Meeting Rule</span>
             </button>
           </div>
 
@@ -274,7 +522,11 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
                   ? 'Daily'
                   : rule.frequency === 'weekly'
                   ? `Weekly (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
-                  : `Monthly (${rule.nth_week ?? 1}th ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`;
+                  : rule.frequency === 'monthly_nth_weekday'
+                  ? `Monthly (${rule.nth_week ?? 1}th ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
+                  : rule.frequency === 'monthly_date'
+                  ? `Monthly (Day ${rule.day_of_month ?? 15})`
+                  : `One-Time (${rule.date || 'Once'})`;
 
               return (
                 <div
@@ -416,59 +668,7 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
         </div>
       )}
 
-      {/* SUB-SECTION 3: SPECIAL ONE-OFF EVENTS */}
-      {activeSubTab === 'special' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Special &amp; One-Off Events</h3>
-              <p className="text-xs text-zinc-500">Annual summits, rallies, special guest workshops or rescheduled meetings.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setEditingEvent(null);
-                setEventModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Special Event</span>
-            </button>
-          </div>
-
-          <div className="space-y-2.5">
-            {events.length === 0 ? (
-              <div className="p-6 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800">
-                <p className="text-xs text-zinc-500">No special events scheduled yet.</p>
-              </div>
-            ) : (
-              events.map((ev) => (
-                <div key={ev.id} className="p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-mono text-xs font-bold text-amber-600 dark:text-amber-400">{ev.date}</span>
-                      {ev.time && <span className="text-xs text-zinc-500">{ev.time}</span>}
-                    </div>
-                    <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{ev.title?.en || 'Untitled Event'}</h4>
-                    {ev.venue && <p className="text-xs text-zinc-500">{ev.venue}</p>}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button type="button" onClick={() => { setEditingEvent(ev); setEventModalOpen(true); }} className="p-1.5 rounded-lg text-zinc-600 hover:bg-zinc-100">
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
-                    <button type="button" onClick={() => handleDeleteEvent(ev.id)} className="p-1.5 rounded-lg text-red-600 hover:bg-red-50">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* SUB-SECTION 4: FLYER & DEFAULT VIEW */}
+      {/* SUB-SECTION 3: FLYER & DEFAULT VIEW */}
       {activeSubTab === 'flyer' && (
         <div className="space-y-5">
           <div className="p-4 sm:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm space-y-4">
@@ -553,11 +753,14 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
         rule={editingRule}
       />
 
-      <EventHighlightModal
-        isOpen={eventModalOpen}
-        onClose={() => setEventModalOpen(false)}
-        onSave={handleSaveEvent}
-        event={editingEvent}
+      <InstanceOverrideModal
+        isOpen={overrideModalOpen}
+        onClose={() => {
+          setOverrideModalOpen(false);
+          setEditingInstance(null);
+        }}
+        instance={editingInstance}
+        onSave={handleSaveException}
       />
     </div>
   );

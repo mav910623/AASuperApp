@@ -44,10 +44,10 @@ export function Header() {
   }, [dictionary]);
 
   const languages: { code: LanguageCode; label: string; fullLabel: string }[] = useMemo(() => [
-    { code: 'en', label: 'EN', fullLabel: 'EN - English' },
-    { code: 'bm', label: 'BM', fullLabel: 'BM - Bahasa Malaysia' },
-    { code: 'cn', label: '中文', fullLabel: '中文 - Chinese' },
-    ...(hasTamil ? [{ code: 'ta' as LanguageCode, label: 'தமிழ்', fullLabel: 'தமிழ் - Tamil' }] : []),
+    { code: 'en', label: 'EN', fullLabel: 'EN (English)' },
+    { code: 'bm', label: 'BM', fullLabel: 'BM (Bahasa Melayu)' },
+    { code: 'cn', label: '中文', fullLabel: '中文 (Chinese)' },
+    ...(hasTamil ? [{ code: 'ta' as LanguageCode, label: 'தமிழ்', fullLabel: 'தமிழ் (Tamil)' }] : []),
   ], [hasTamil]);
 
   const currentOption = useMemo(() => {
@@ -73,27 +73,22 @@ export function Header() {
 
         {/* Right Section: Compact Dropdown Language Switcher + Theme Toggle + Discreet Lock */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Compact Dropdown Language Selector */}
+          {/* Single Compact Button Dropdown Language Selector */}
           <div className="relative" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setLangOpen((prev) => !prev)}
               aria-label="Select Application Language"
               aria-expanded={langOpen}
-              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors active:scale-95 shadow-2xs select-none"
+              className="inline-flex items-center gap-1 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors active:scale-95 shadow-2xs select-none"
             >
-              <span className="text-sm leading-none">🌐</span>
               <span>{currentOption?.label || 'EN'}</span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-zinc-500 transition-transform duration-200 ${
-                  langOpen ? 'rotate-180 text-amber-500' : ''
-                }`}
-              />
+              <span className={`text-[11px] text-zinc-500 transition-transform duration-200 ${langOpen ? 'rotate-180 text-amber-500' : ''}`}>▾</span>
             </button>
 
             {/* Popover Menu */}
             {langOpen && (
-              <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150">
                 <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 dark:border-zinc-800 mb-1">
                   Language / 语言
                 </div>

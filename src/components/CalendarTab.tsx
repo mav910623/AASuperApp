@@ -10,13 +10,17 @@ import {
   MapPin,
   Clock,
   Eye,
-  ChevronLeft,
-  ChevronRight,
+  ChevronDown,
+  X,
   Sparkles,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import type { TeamCalendar } from '@/types/app';
-import { getEventsForCalendar, type GeneratedScheduleEvent } from '@/lib/calendarGenerator';
+import {
+  getEventsForCalendar,
+  splitUpcomingMeetings,
+  type GeneratedScheduleEvent,
+} from '@/lib/calendarGenerator';
 import { ImageLightbox } from '@/components/ImageLightbox';
 import { EventDetailsModal } from '@/components/EventDetailsModal';
 
@@ -34,26 +38,38 @@ const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export function CalendarTab({ calendar }: CalendarTabProps) {
   const { t, getLocalized } = useApp();
 
+  // Locked to Current Month Only
   const now = new Date();
-  const [currentYear, setCurrentYear] = useState(now.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(now.getMonth() + 1); // 1-12
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 1-12
+  const todayDayNum = now.getDate();
+  const todayIsoDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(todayDayNum).padStart(2, '0')}`;
 
   const [activeView, setActiveView] = useState<'dynamic' | 'flyer'>(
     calendar?.default_view || 'dynamic'
   );
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  // Day drawer/modal state
+  const [dayDrawerDate, setDayDrawerDate] = useState<string | null>(null);
+
+  // Meeting details modal
   const [selectedEvent, setSelectedEvent] = useState<GeneratedScheduleEvent | null>(null);
+
+  // Lightbox for monthly flyer
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  // Accordion state for remaining meetings
+  const [showRemainingAccordion, setShowRemainingAccordion] = useState(false);
 
   const monthLabel = getLocalized(calendar?.month_label) || t('upcoming_events', 'Team Calendar');
   const imageUrl = getLocalized(calendar?.image_url);
 
-  // Generate schedule for the active year/month
+  // Generate schedule for the locked current year/month
   const monthlyEvents = useMemo(() => {
     return getEventsForCalendar(calendar, currentYear, currentMonth);
   }, [calendar, currentYear, currentMonth]);
 
-  // Group events by date string for dots in calendar grid
+  // Group events by date string
   const eventsByDate = useMemo(() => {
     const map: Record<string, GeneratedScheduleEvent[]> = {};
     for (const ev of monthlyEvents) {
@@ -63,29 +79,14 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
     return map;
   }, [monthlyEvents]);
 
+  // Split upcoming 2 meetings & remaining meetings
+  const { nextTwo, remaining } = useMemo(() => {
+    return splitUpcomingMeetings(monthlyEvents, todayIsoDate);
+  }, [monthlyEvents, todayIsoDate]);
+
   // Grid calculation: days in month, starting day of week
   const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
   const startDayOfWeek = new Date(currentYear, currentMonth - 1, 1).getDay(); // 0 = Sun
-
-  const handlePrevMonth = () => {
-    setSelectedDate(null);
-    if (currentMonth === 1) {
-      setCurrentMonth(12);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    setSelectedDate(null);
-    if (currentMonth === 12) {
-      setCurrentMonth(1);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
-    }
-  };
 
   const handleShareFlyer = () => {
     const shareText = `${monthLabel}\n\n${t('share_flyer', 'Check out our monthly team calendar and upcoming events:')}\n${imageUrl || (typeof window !== 'undefined' ? window.location.href : '')}`;
@@ -98,28 +99,31 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
     }
   };
 
-  const displayedEvents = selectedDate
-    ? monthlyEvents.filter((e) => e.date === selectedDate)
-    : monthlyEvents;
+  const dayDrawerEvents = dayDrawerDate ? eventsByDate[dayDrawerDate] || [] : [];
 
   return (
     <div className="w-full space-y-5 px-4 py-4 animate-in fade-in duration-200">
+      {/* Top Toggle: Live Calendar vs Monthly Flyer */}
       <div className="flex rounded-2xl bg-zinc-100 dark:bg-zinc-900 p-1 border border-zinc-200 dark:border-zinc-800">
         <button
           type="button"
           onClick={() => setActiveView('dynamic')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
-            activeView === 'dynamic' ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-sm' : 'text-zinc-600 dark:text-zinc-400'
+            activeView === 'dynamic'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-sm'
+              : 'text-zinc-600 dark:text-zinc-400'
           }`}
         >
           <CalendarIcon className="w-4 h-4 text-amber-500" />
-          <span>📅 Dynamic Calendar</span>
+          <span>📅 Live Calendar</span>
         </button>
         <button
           type="button"
           onClick={() => setActiveView('flyer')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
-            activeView === 'flyer' ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-sm' : 'text-zinc-600 dark:text-zinc-400'
+            activeView === 'flyer'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-sm'
+              : 'text-zinc-600 dark:text-zinc-400'
           }`}
         >
           <span className="text-base leading-none">🖼️</span>
@@ -129,128 +133,192 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
 
       {activeView === 'dynamic' && (
         <div className="space-y-4">
+          {/* Current Month Header (Locked to Current Month Only) */}
           <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <button type="button" onClick={handlePrevMonth} className="p-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div className="text-center">
-              <h3 className="text-sm sm:text-base font-bold text-zinc-950 dark:text-zinc-50">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-zinc-950 dark:text-zinc-50">
                 {MONTH_NAMES[currentMonth - 1]} {currentYear}
               </h3>
-              <p className="text-[11px] text-zinc-500">{monthlyEvents.length} meetings scheduled</p>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                Current month schedule • {monthlyEvents.length} meetings
+              </p>
             </div>
-            <button type="button" onClick={handleNextMonth} className="p-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              Active Schedule
+            </span>
           </div>
 
-          <div className="p-3.5 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <div className="grid grid-cols-7 text-center mb-1.5">
+          {/* Month Calendar Grid with Meeting Titles Inside Each Day Box */}
+          <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div className="grid grid-cols-7 text-center mb-2">
               {WEEK_DAYS.map((d) => (
-                <div key={d} className="text-[10px] font-bold uppercase text-zinc-400 py-1">{d}</div>
+                <div key={d} className="text-[10px] font-bold uppercase text-zinc-400 py-1">
+                  {d}
+                </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1">
+
+            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
               {Array.from({ length: startDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square" />
+                <div key={`empty-${i}`} className="min-h-[64px] sm:min-h-[76px] rounded-xl bg-zinc-50/50 dark:bg-zinc-900/40" />
               ))}
+
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const dayNum = i + 1;
                 const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
                 const dayEvents = eventsByDate[dateStr] || [];
                 const hasEvents = dayEvents.length > 0;
-                const isSelected = selectedDate === dateStr;
-                const isToday = now.getFullYear() === currentYear && now.getMonth() + 1 === currentMonth && now.getDate() === dayNum;
+                const isToday = dayNum === todayDayNum;
+
                 return (
                   <button
                     key={dateStr}
                     type="button"
-                    onClick={() => setSelectedDate((prev) => (prev === dateStr ? null : dateStr))}
-                    className={`aspect-square rounded-2xl flex flex-col items-center justify-center p-1 relative transition-all ${
-                      isSelected ? 'bg-amber-500 text-white font-bold shadow-md scale-105' : isToday ? 'border-2 border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 font-bold' : hasEvents ? 'bg-zinc-50 dark:bg-zinc-800/60 font-semibold' : 'text-zinc-400'
+                    onClick={() => setDayDrawerDate(dateStr)}
+                    className={`min-h-[64px] sm:min-h-[76px] rounded-xl p-1 sm:p-1.5 flex flex-col justify-start items-start text-left transition-all border ${
+                      isToday
+                        ? 'border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 shadow-xs ring-1 ring-amber-500'
+                        : hasEvents
+                        ? 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-850 hover:border-amber-400 hover:shadow-xs'
+                        : 'border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/60 dark:bg-zinc-900/40 text-zinc-400'
                     }`}
                   >
-                    <span className="text-xs">{dayNum}</span>
-                    {hasEvents && (
-                      <div className="flex gap-0.5 mt-0.5">
-                        {dayEvents.slice(0, 3).map((e, idx) => (
-                          <span key={idx} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : e.is_recurring ? 'bg-amber-500' : 'bg-red-500'}`} />
-                        ))}
-                      </div>
-                    )}
+                    <div className="w-full flex items-center justify-between mb-1">
+                      <span
+                        className={`text-[11px] font-bold ${
+                          isToday
+                            ? 'inline-flex items-center justify-center h-5 w-5 rounded-full bg-amber-500 text-white'
+                            : 'text-zinc-700 dark:text-zinc-300'
+                        }`}
+                      >
+                        {dayNum}
+                      </span>
+                      {hasEvents && (
+                        <span className="text-[9px] font-bold text-zinc-400">
+                          {dayEvents.length}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Up to 2 Mini Meeting Title Pills inside the day box */}
+                    <div className="w-full space-y-0.5 overflow-hidden">
+                      {dayEvents.slice(0, 2).map((ev) => {
+                        const titleText = getLocalized(ev.title);
+                        return (
+                          <div
+                            key={ev.id}
+                            className="w-full text-[9px] sm:text-[10px] font-semibold px-1 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 truncate leading-tight"
+                            title={titleText}
+                          >
+                            {titleText}
+                          </div>
+                        );
+                      })}
+                      {dayEvents.length > 2 && (
+                        <span className="block text-[8px] sm:text-[9px] font-bold text-amber-600 dark:text-amber-400 px-0.5">
+                          +{dayEvents.length - 2} more
+                        </span>
+                      )}
+                    </div>
                   </button>
                 );
               })}
             </div>
-            {selectedDate && (
-              <div className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs">
-                <span className="font-semibold">Showing: <strong className="text-amber-600">{selectedDate}</strong></span>
-                <button type="button" onClick={() => setSelectedDate(null)} className="text-amber-600 font-bold hover:underline">Show all ({monthlyEvents.length})</button>
-              </div>
-            )}
           </div>
 
-          <div className="space-y-2.5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 px-1">
-              Meetings ({displayedEvents.length}) - Tap to open details
-            </h4>
-            {displayedEvents.length === 0 ? (
-              <div className="p-8 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/30">
-                <p className="text-xs text-zinc-500">No meetings scheduled for this date.</p>
+          {/* Upcoming Meetings Section (Next 2 Meetings prominent at top) */}
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center justify-between px-1">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                Next 2 Upcoming Meetings
+              </h4>
+              <span className="text-[11px] font-medium text-zinc-400">From today onward</span>
+            </div>
+
+            {nextTwo.length === 0 ? (
+              <div className="p-6 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/40">
+                <p className="text-xs text-zinc-500">No upcoming meetings remaining this month.</p>
               </div>
             ) : (
-              displayedEvents.map((ev) => {
-                const titleStr = getLocalized(ev.title);
-                const isZoom = ev.location_or_link?.includes('zoom');
-                return (
-                  <div
-                    key={ev.id}
-                    onClick={() => setSelectedEvent(ev)}
-                    className="group cursor-pointer p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs hover:border-amber-400 hover:shadow-md transition-all active:scale-[0.99] flex items-start justify-between gap-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
-                          {ev.date}
-                        </span>
-                        {ev.time && (
-                          <span className="flex items-center gap-1 text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                            <Clock className="w-3 h-3 text-zinc-400" />
-                            <span>{ev.time}</span>
+              <div className="space-y-2.5">
+                {nextTwo.map((ev, idx) => {
+                  const titleStr = getLocalized(ev.title);
+                  return (
+                    <div
+                      key={ev.id}
+                      onClick={() => setSelectedEvent(ev)}
+                      className={`cursor-pointer p-4 rounded-2xl border transition-all active:scale-[0.99] flex items-start justify-between gap-3 shadow-xs ${
+                        idx === 0
+                          ? 'border-amber-400/90 dark:border-amber-500/50 bg-gradient-to-r from-amber-50/50 via-white to-white dark:from-amber-950/20 dark:via-zinc-900 dark:to-zinc-900'
+                          : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-amber-300'
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500 text-white">
+                            {ev.date}
                           </span>
-                        )}
-                        <span
-                          className={`px-1.5 py-0.2 text-[9px] font-bold rounded uppercase ${
-                            ev.is_recurring ? 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300' : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
-                          }`}
-                        >
-                          {ev.is_recurring ? 'Recurring' : 'Special'}
-                        </span>
+                          {ev.time && (
+                            <span className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-300 font-semibold">
+                              <Clock className="w-3.5 h-3.5 text-amber-500" />
+                              <span>{ev.time}</span>
+                            </span>
+                          )}
+                          {ev.is_modified && (
+                            <span className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                              Rescheduled
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-50 leading-snug">
+                          {titleStr}
+                        </h4>
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap">
+                          {ev.speaker && <span>🎙️ {ev.speaker}</span>}
+                          {ev.venue && <span>📍 {ev.venue}</span>}
+                        </div>
                       </div>
-                      <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50 group-hover:text-amber-600 transition-colors leading-snug">
-                        {titleStr}
-                      </h4>
-                      <div className="flex items-center gap-3 mt-1 text-[11px] text-zinc-500 flex-wrap">
-                        {ev.speaker && <span>🎙️ {ev.speaker}</span>}
-                        {ev.venue ? (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-red-500" />
-                            <span>{ev.venue}</span>
-                          </span>
-                        ) : isZoom ? (
-                          <span className="flex items-center gap-1 text-blue-500">
-                            <Video className="w-3 h-3" />
-                            <span>Zoom Online</span>
-                          </span>
-                        ) : null}
+                      <div className="self-center flex-shrink-0 text-amber-600 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40">
+                        Details →
                       </div>
                     </div>
-                    <div className="self-center flex-shrink-0 text-amber-500 text-xs font-bold opacity-80 group-hover:opacity-100">
-                      View →
-                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Rest of the Month Accordion */}
+            {remaining.length > 0 && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowRemainingAccordion(!showRemainingAccordion)}
+                  className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-zinc-100/80 dark:bg-zinc-800/60 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-700 dark:text-zinc-300"
+                >
+                  <span>Show {remaining.length} more meetings this month</span>
+                  <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${showRemainingAccordion ? 'rotate-180 text-amber-500' : ''}`} />
+                </button>
+                {showRemainingAccordion && (
+                  <div className="space-y-2 mt-2.5 animate-in fade-in duration-200">
+                    {remaining.map((ev) => (
+                      <div
+                        key={ev.id}
+                        onClick={() => setSelectedEvent(ev)}
+                        className="cursor-pointer p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-amber-300 transition-all flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-bold text-amber-600 dark:text-amber-400">{ev.date}</span>
+                            {ev.time && <span className="text-zinc-400">• {ev.time}</span>}
+                          </div>
+                          <h5 className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{getLocalized(ev.title)}</h5>
+                        </div>
+                        <span className="text-amber-500 font-bold">→</span>
+                      </div>
+                    ))}
                   </div>
-                );
-              })
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -288,6 +356,75 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
               <p className="text-xs text-zinc-500">No flyer image uploaded for this month.</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Day Drawer / Modal */}
+      {dayDrawerDate && (
+        <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg max-h-[85vh] rounded-t-3xl sm:rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+              <div>
+                <h3 className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-50">
+                  📅 {dayDrawerDate}
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  {dayDrawerEvents.length} meeting{dayDrawerEvents.length === 1 ? '' : 's'} scheduled
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDayDrawerDate(null)}
+                className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2.5">
+              {dayDrawerEvents.length === 0 ? (
+                <div className="p-8 text-center text-xs text-zinc-500">
+                  No meetings scheduled for this date.
+                </div>
+              ) : (
+                dayDrawerEvents.map((ev) => {
+                  const titleStr = getLocalized(ev.title);
+                  return (
+                    <div
+                      key={ev.id}
+                      onClick={() => {
+                        setSelectedEvent(ev);
+                      }}
+                      className="cursor-pointer p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-850 hover:border-amber-400 hover:shadow-xs transition-all flex items-start justify-between gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                            {ev.time}
+                          </span>
+                          {ev.is_modified && (
+                            <span className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                              Rescheduled
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50 leading-snug">
+                          {titleStr}
+                        </h4>
+                        <div className="flex items-center gap-3 mt-1 text-[11px] text-zinc-500 flex-wrap">
+                          {ev.speaker && <span>🎙️ {ev.speaker}</span>}
+                          {ev.venue && <span>📍 {ev.venue}</span>}
+                        </div>
+                      </div>
+                      <span className="self-center text-amber-500 text-xs font-bold">
+                        View →
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
         </div>
       )}
 

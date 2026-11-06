@@ -197,22 +197,23 @@ export function SectionControls({
         })}
       </div>
 
-      {/* 3) Section Header + "WhatsApp Full Section" Button */}
+      {/* 3) Sleek, Compact Section Header Row */}
       {!searchQuery && (
         <div className="px-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-3xl bg-gradient-to-br from-blue-50/80 via-white to-blue-50/30 dark:from-zinc-900/90 dark:via-zinc-900 dark:to-blue-950/20 border border-blue-100/90 dark:border-zinc-800 p-4 shadow-xs">
+          <div className="flex items-center justify-between gap-2 rounded-2xl bg-gradient-to-r from-blue-50/70 via-white to-blue-50/30 dark:from-zinc-900/90 dark:via-zinc-900 dark:to-blue-950/20 border border-blue-100/80 dark:border-zinc-800 px-3.5 py-2.5 shadow-xs">
+            {/* Left side: Title + count badge + 1-line subtitle */}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 mb-0.5">
-                <h2 className="text-base sm:text-lg font-black tracking-tight text-zinc-950 dark:text-zinc-50 truncate">
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-sm sm:text-base font-bold tracking-tight text-zinc-950 dark:text-zinc-50 truncate">
                   {activeSection
                     ? getLocalized(activeSection.title) || activeSection.slug
                     : t('all', 'All Resources')}
                 </h2>
-                <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500">
+                <span className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 flex-shrink-0">
                   ({activeSectionToolsCount})
                 </span>
               </div>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate leading-tight">
                 {activeSection
                   ? getLocalized(activeSection.description) ||
                     'Browse curated resources and tools for this category'
@@ -220,15 +221,15 @@ export function SectionControls({
               </p>
             </div>
 
-            {/* WhatsApp Full Section Button */}
+            {/* Right side: Small compact pill button */}
             {activeSectionToolsCount > 0 && (
               <button
                 type="button"
                 onClick={onShareFullSection}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-500/20 active:scale-[0.98] transition-all flex-shrink-0 select-none"
+                className="px-3 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold inline-flex items-center gap-1.5 flex-shrink-0 shadow-sm active:scale-95 transition-all select-none"
               >
-                <Share2 className="h-4 w-4" />
-                <span>{t('btn_share_section', 'WhatsApp Full Section')}</span>
+                <Share2 className="h-3.5 w-3.5" />
+                <span>{t('btn_share_section', 'Share Set')}</span>
               </button>
             )}
           </div>

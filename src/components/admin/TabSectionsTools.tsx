@@ -77,7 +77,7 @@ export function TabSectionsTools({
     if (res.success) {
       onNotify('Sections reordered successfully');
     } else {
-      onNotify('Failed to save order in database', true);
+      onNotify(!res.success ? res.error : 'Failed to save order in database', true);
     }
   };
 
@@ -91,7 +91,7 @@ export function TabSectionsTools({
     if (res.success) {
       onNotify(`Section is now ${newVis ? 'visible' : 'hidden'}`);
     } else {
-      onNotify('Failed to update visibility', true);
+      onNotify(!res.success ? res.error : 'Failed to update visibility', true);
     }
   };
 
@@ -107,7 +107,7 @@ export function TabSectionsTools({
       setTools((prev) => prev.filter((t) => t.section_id !== sec.id));
       onNotify('Section and tools deleted successfully');
     } else {
-      onNotify('Failed to delete section', true);
+      onNotify(!res.success ? res.error : 'Failed to delete section', true);
     }
   };
 
@@ -126,6 +126,8 @@ export function TabSectionsTools({
       onNotify('Section saved successfully');
       return true;
     }
+    const errMsg = !res.success ? res.error : 'Failed to save section';
+    onNotify(errMsg, true);
     return false;
   };
 
@@ -138,7 +140,7 @@ export function TabSectionsTools({
     if (res.success) {
       onNotify(`Tool ${newFeatured ? 'featured on top' : 'unfeatured'}`);
     } else {
-      onNotify('Failed to update tool', true);
+      onNotify(!res.success ? res.error : 'Failed to update tool', true);
     }
   };
 
@@ -151,7 +153,7 @@ export function TabSectionsTools({
     if (res.success) {
       onNotify(`Tool is now ${newVis ? 'visible' : 'hidden'}`);
     } else {
-      onNotify('Failed to update tool visibility', true);
+      onNotify(!res.success ? res.error : 'Failed to update tool visibility', true);
     }
   };
 
@@ -164,7 +166,7 @@ export function TabSectionsTools({
       setTools((prev) => prev.filter((t) => t.id !== tool.id));
       onNotify('Tool deleted successfully');
     } else {
-      onNotify('Failed to delete tool', true);
+      onNotify(!res.success ? res.error : 'Failed to delete tool', true);
     }
   };
 
@@ -183,6 +185,8 @@ export function TabSectionsTools({
       onNotify('Tool saved successfully');
       return true;
     }
+    const errMsg = !res.success ? res.error : 'Failed to save tool';
+    onNotify(errMsg, true);
     return false;
   };
 

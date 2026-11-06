@@ -75,19 +75,47 @@ export type CalendarEvent = {
   image_url?: string;
 };
 
-export type RecurringRule = {
+export type MeetingFrequency =
+  | 'once'
+  | 'daily'
+  | 'weekly'
+  | 'monthly_nth_weekday'
+  | 'monthly_date';
+
+export type MeetingSeries = {
   id: string;
   title: string;
-  frequency: 'daily' | 'weekly' | 'monthly_nth_weekday';
+  frequency: MeetingFrequency;
+  date?: string; // YYYY-MM-DD for 'once'
   day_of_week?: number; // 0=Sun..6=Sat
-  nth_week?: number; // 1..5 (for monthly_nth_weekday)
+  nth_week?: number; // 1=1st, 2=2nd, 3=3rd, 4=4th, 5=Last
+  day_of_month?: number; // 1..31
   time: string;
+  speaker: string;
   venue: string;
   address_or_link: string;
-  speaker?: string;
-  description?: string;
-  image_url?: string;
+  description: string;
+  image_url: string;
   is_active: boolean;
+};
+
+// Backwards-compatible alias for existing codebase
+export type RecurringRule = MeetingSeries;
+
+export type MeetingException = {
+  id: string;
+  series_id: string;
+  original_date: string; // YYYY-MM-DD
+  action: 'cancel' | 'modify';
+  new_date?: string; // YYYY-MM-DD
+  new_time?: string;
+  new_title?: string;
+  new_speaker?: string;
+  new_venue?: string;
+  new_address_or_link?: string;
+  new_description?: string;
+  new_image_url?: string;
+  reason?: string;
 };
 
 export type BlackoutDate = {
@@ -102,7 +130,8 @@ export type TeamCalendar = {
   month_label: LocalizedString;
   image_url: LocalizedString;
   events: CalendarEvent[];
-  recurring_rules?: RecurringRule[];
+  recurring_rules?: MeetingSeries[];
+  exceptions?: MeetingException[];
   blackout_dates?: BlackoutDate[];
   default_view?: 'flyer' | 'dynamic';
   last_reviewed_month?: string; // YYYY-MM

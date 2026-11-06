@@ -143,7 +143,7 @@ export function AdminDashboard({
                   🔔 New Month Schedule Review ({currentYearMonth})
                 </h4>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
-                  Please review this month's recurring meetings (DCC, ASAP, BSE 1), add any blackout dates or special events, and click &apos;Confirm &amp; Save Month Schedule&apos;.
+                  Please review this month&apos;s meetings and schedule, add any blackout dates or special events, and click &apos;Confirm &amp; Save Month Schedule&apos;.
                 </p>
               </div>
             </div>

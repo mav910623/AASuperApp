@@ -294,7 +294,7 @@ test('adminActions: role-based authorization matrix enforces correct permissions
     sections: ['editor', 'admin', 'superadmin'],
     tools: ['editor', 'admin', 'superadmin'],
     mediaUpload: ['editor', 'admin', 'superadmin'],
-    calendar: ['admin', 'superadmin'],
+    calendar: ['editor', 'admin', 'superadmin'],
     dictionary: ['admin', 'superadmin'],
     pins: ['superadmin'],
   };
@@ -308,7 +308,7 @@ test('adminActions: role-based authorization matrix enforces correct permissions
   assert.equal(isAuthorized(ROLES.EDITOR, 'sections'), true);
   assert.equal(isAuthorized(ROLES.EDITOR, 'tools'), true);
   assert.equal(isAuthorized(ROLES.EDITOR, 'mediaUpload'), true);
-  assert.equal(isAuthorized(ROLES.EDITOR, 'calendar'), false);
+  assert.equal(isAuthorized(ROLES.EDITOR, 'calendar'), true);
   assert.equal(isAuthorized(ROLES.EDITOR, 'dictionary'), false);
   assert.equal(isAuthorized(ROLES.EDITOR, 'pins'), false);
 
@@ -676,6 +676,113 @@ test('calendar: expands recurring rules, filters blackout dates, and merges spec
   for (let i = 0; i < result.length - 1; i++) {
     assert.ok(result[i].date <= result[i + 1].date);
   }
+});
+
+// Test 19: isValidUuid helper prevents UUID syntax errors on mock data IDs
+test('admin: isValidUuid helper correctly distinguishes UUIDs from mock string IDs', () => {
+  const isValidUuid = (str) =>
+    Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+
+  assert.equal(isValidUuid('cebbb725-ce7c-43c6-8d33-ea19d948bae0'), true);
+  assert.equal(isValidUuid('8305a7da-8972-4cc7-a44e-b2d9e1faaa35'), true);
+  assert.equal(isValidUuid('tool-wow'), false);
+  assert.equal(isValidUuid('1'), false);
+  assert.equal(isValidUuid(''), false);
+  assert.equal(isValidUuid(undefined), false);
+});
+
+// Test 20: Meeting series exception overrides (modify & reschedule to another date, or cancel)
+test('calendar: exception overrides can reschedule an occurrence to another date or cancel it', async () => {
+  const { generateMonthSchedule } = await import('../src/lib/calendarGenerator.ts');
+
+  const meetingSeries = [
+    {
+      id: 'bse',
+      title: 'BSE 1',
+      frequency: 'monthly_nth_weekday',
+      nth_week: 3,
+      day_of_week: 6, // 3rd Saturday: Nov 21, 2026
+      time: '10:00 AM',
+      venue: 'Wisma Central',
+      address_or_link: 'KL',
+      is_active: true,
+    },
+  ];
+
+  // Reschedule 3rd Saturday (Nov 21) to 4th Saturday (Nov 28) for Nov 2026 only!
+  const exceptions = [
+    {
+      id: 'ex-1',
+      series_id: 'bse',
+      original_date: '2026-11-21',
+      action: 'modify',
+      new_date: '2026-11-28',
+      new_time: '11:00 AM',
+      new_title: 'BSE 1 (Special Date)',
+      reason: 'Moved for this month only',
+    },
+  ];
+
+  const schedule = generateMonthSchedule(2026, 11, meetingSeries, [], [], exceptions);
+
+  // Original date (Nov 21) should NOT have BSE
+  const nov21 = schedule.find((e) => e.date === '2026-11-21');
+  assert.equal(nov21, undefined);
+
+  // New date (Nov 28) should have rescheduled BSE with updated fields
+  const nov28 = schedule.find((e) => e.date === '2026-11-28');
+  assert.ok(nov28);
+  assert.equal(nov28.title.en, 'BSE 1 (Special Date)');
+  assert.equal(nov28.time, '11:00 AM');
+  assert.equal(nov28.is_modified, true);
+});
+
+// Test 21: Auto-cleanup of one-time series and exceptions older than 2 months prior
+test('calendar: pruneCalendarData cleans up records older than 2 months prior', async () => {
+  const { pruneCalendarData, getTwoMonthsPriorCutoff } = await import('../src/lib/calendarGenerator.ts');
+
+  const cutoff = getTwoMonthsPriorCutoff(new Date('2026-11-15'));
+  assert.equal(cutoff, '2026-09-01');
+
+  const calendarData = {
+    recurring_rules: [
+      { id: '1', title: 'Recurring Rule', frequency: 'weekly' },
+      { id: '2', title: 'Old One-Time Event', frequency: 'once', date: '2026-08-15' }, // older than 2026-09-01 -> pruned!
+      { id: '3', title: 'Recent One-Time Event', frequency: 'once', date: '2026-10-01' }, // kept
+    ],
+    exceptions: [
+      { id: 'e1', series_id: '1', original_date: '2026-07-01', action: 'cancel' }, // pruned
+      { id: 'e2', series_id: '1', original_date: '2026-10-15', action: 'cancel' }, // kept
+    ],
+  };
+
+  const pruned = pruneCalendarData(calendarData);
+  assert.equal(pruned.recurring_rules.length, 2);
+  assert.equal(pruned.recurring_rules.some((r) => r.id === '2'), false);
+  assert.equal(pruned.exceptions.length, 1);
+  assert.equal(pruned.exceptions[0].id, 'e2');
+});
+
+// Test 22: splitUpcomingMeetings returns next 2 upcoming meetings from today onward
+test('calendar: splitUpcomingMeetings separates the next 2 meetings from the rest', async () => {
+  const { splitUpcomingMeetings } = await import('../src/lib/calendarGenerator.ts');
+
+  const events = [
+    { id: 'e1', date: '2026-11-01', time: '10:00 AM' }, // past
+    { id: 'e2', date: '2026-11-10', time: '10:00 AM' }, // upcoming 1
+    { id: 'e3', date: '2026-11-15', time: '10:00 AM' }, // upcoming 2
+    { id: 'e4', date: '2026-11-20', time: '10:00 AM' }, // remaining 1
+    { id: 'e5', date: '2026-11-25', time: '10:00 AM' }, // remaining 2
+  ];
+
+  const { nextTwo, remaining } = splitUpcomingMeetings(events, '2026-11-06');
+  assert.equal(nextTwo.length, 2);
+  assert.equal(nextTwo[0].id, 'e2');
+  assert.equal(nextTwo[1].id, 'e3');
+
+  assert.equal(remaining.length, 2);
+  assert.equal(remaining[0].id, 'e4');
+  assert.equal(remaining[1].id, 'e5');
 });
 
 

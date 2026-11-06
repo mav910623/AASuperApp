@@ -9,6 +9,7 @@ import {
   DEFAULT_CALENDAR,
 } from '@/lib/mockData';
 import { DEFAULT_UI_DICTIONARY } from '@/lib/dictionary';
+import { pruneCalendarData, unpackCalendar } from '@/lib/calendarGenerator';
 import type {
   AccessPin,
   AccessPinRole,
@@ -24,6 +25,9 @@ import type {
 } from '@/types/app';
 import { PIN_SESSION_COOKIE } from '@/types/app';
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+const isValidUuid = (str?: string) =>
+  Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
 
 function getAdminClient(): SupabaseClient<Database> {
   try {
@@ -211,6 +215,10 @@ export async function getSessionAction(): Promise<ActionResponse<AdminSession | 
       return { success: true, session: null, data: null };
     }
 
+    if (session.id === 'master-superadmin') {
+      return { success: true, session, data: session };
+    }
+
     const client = getAdminClient();
     const { data: pinRecord, error } = await client
       .from('access_pins')
@@ -278,7 +286,9 @@ export async function getAdminDashboardDataAction(): Promise<ActionResponse<Admi
     const tools: Tool[] =
       toolRes.data && toolRes.data.length > 0 ? (toolRes.data as Tool[]) : DEFAULT_TOOLS;
     const calendar: TeamCalendar =
-      calRes.data && calRes.data.length > 0 ? (calRes.data[0] as TeamCalendar) : DEFAULT_CALENDAR;
+      calRes.data && calRes.data.length > 0
+        ? unpackCalendar(calRes.data[0] as TeamCalendar)
+        : DEFAULT_CALENDAR;
 
     const dictMap: Record<string, UiDictionary> = { ...DEFAULT_UI_DICTIONARY };
     if (dictRes.data && dictRes.data.length > 0) {
@@ -355,15 +365,14 @@ export async function upsertSectionAction(
         cn: section.description?.cn?.trim() || section.description?.en?.trim() || '',
         ta: section.description?.ta?.trim() || section.description?.en?.trim() || '',
       },
-      updated_at: new Date().toISOString(),
     };
 
     let result;
-    if (section.id) {
+    if (isValidUuid(section.id)) {
       result = await client
         .from('sections')
         .update(payload)
-        .eq('id', section.id)
+        .eq('id', section.id!)
         .select()
         .single();
     } else {
@@ -541,15 +550,14 @@ export async function upsertToolAction(tool: Partial<Tool>): Promise<ActionRespo
       is_featured: Boolean(tool.is_featured),
       sort_order: typeof tool.sort_order === 'number' ? tool.sort_order : 0,
       is_visible: tool.is_visible !== false,
-      updated_at: new Date().toISOString(),
     };
 
     let result;
-    if (tool.id) {
+    if (isValidUuid(tool.id)) {
       result = await client
         .from('tools')
         .update(payload)
-        .eq('id', tool.id)
+        .eq('id', tool.id!)
         .select()
         .single();
     } else {
@@ -643,32 +651,67 @@ export async function updateCalendarAction(
     await requireSession(['editor', 'admin', 'superadmin']);
     const client = getAdminClient();
 
+    // Auto-cleanup records older than 2 months prior
+    const cleanedCalendar = pruneCalendarData(calendarData);
+
+    const recurringRules = Array.isArray(cleanedCalendar.recurring_rules)
+      ? cleanedCalendar.recurring_rules
+      : [];
+    const exceptions = Array.isArray(cleanedCalendar.exceptions)
+      ? cleanedCalendar.exceptions
+      : [];
+    const blackoutDates = Array.isArray(cleanedCalendar.blackout_dates)
+      ? cleanedCalendar.blackout_dates
+      : [];
+    const baseEvents = Array.isArray(cleanedCalendar.events)
+      ? cleanedCalendar.events.filter((e) => e.id !== '_meta_calendar')
+      : [];
+
+    // Fallback meta marker in events JSONB so if table columns are not migrated, data is preserved!
+    const metaEvent = {
+      id: '_meta_calendar',
+      date: '9999-12-31',
+      time: '',
+      title: { en: '', bm: '', cn: '', ta: '' },
+      speaker: '',
+      location_or_link: '',
+      description: JSON.stringify({
+        recurring_rules: recurringRules,
+        exceptions,
+        blackout_dates: blackoutDates,
+        default_view: cleanedCalendar.default_view || 'dynamic',
+        last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
+      }),
+    };
+
     const payload: Record<string, unknown> = {
       month_label: {
-        en: calendarData.month_label?.en?.trim() || '',
-        bm: calendarData.month_label?.bm?.trim() || '',
-        cn: calendarData.month_label?.cn?.trim() || '',
-        ta: calendarData.month_label?.ta?.trim() || '',
+        en: cleanedCalendar.month_label?.en?.trim() || '',
+        bm: cleanedCalendar.month_label?.bm?.trim() || '',
+        cn: cleanedCalendar.month_label?.cn?.trim() || '',
+        ta: cleanedCalendar.month_label?.ta?.trim() || '',
       },
       image_url: {
-        en: calendarData.image_url?.en?.trim() || '',
-        bm: calendarData.image_url?.bm?.trim() || '',
-        cn: calendarData.image_url?.cn?.trim() || '',
-        ta: calendarData.image_url?.ta?.trim() || '',
+        en: cleanedCalendar.image_url?.en?.trim() || '',
+        bm: cleanedCalendar.image_url?.bm?.trim() || '',
+        cn: cleanedCalendar.image_url?.cn?.trim() || '',
+        ta: cleanedCalendar.image_url?.ta?.trim() || '',
       },
-      events: Array.isArray(calendarData.events) ? calendarData.events : [],
-      recurring_rules: Array.isArray(calendarData.recurring_rules) ? calendarData.recurring_rules : [],
-      blackout_dates: Array.isArray(calendarData.blackout_dates) ? calendarData.blackout_dates : [],
-      default_view: calendarData.default_view || 'dynamic',
-      last_reviewed_month: calendarData.last_reviewed_month || '',
-      updated_at: new Date().toISOString(),
+      events: [...baseEvents, metaEvent],
+      recurring_rules: recurringRules,
+      exceptions,
+      blackout_dates: blackoutDates,
+      default_view: cleanedCalendar.default_view || 'dynamic',
+      last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
     };
 
     let result;
-    if (calendarData.id) {
+    const targetId = isValidUuid(cleanedCalendar.id) ? cleanedCalendar.id : undefined;
+
+    if (targetId) {
       result = await (client.from('team_calendar') as any)
         .update(payload)
-        .eq('id', calendarData.id)
+        .eq('id', targetId)
         .select()
         .single();
     } else {
@@ -678,7 +721,7 @@ export async function updateCalendarAction(
         .limit(1)
         .maybeSingle();
 
-      if (existing?.id) {
+      if (existing?.id && isValidUuid(existing.id)) {
         result = await (client.from('team_calendar') as any)
           .update(payload)
           .eq('id', existing.id)
@@ -694,36 +737,46 @@ export async function updateCalendarAction(
 
     if (result.error) {
       // If postgres schema doesn't have the newly added json columns yet, fallback to base payload
-      if (result.error.message && result.error.message.includes('does not exist')) {
-        const basePayload = {
-          month_label: payload.month_label,
-          image_url: payload.image_url,
-          events: payload.events,
-          updated_at: payload.updated_at,
-        };
-        const fallbackRes = calendarData.id
-          ? await (client.from('team_calendar') as any).update(basePayload).eq('id', calendarData.id).select().single()
-          : await (client.from('team_calendar') as any).insert(basePayload).select().single();
-        if (fallbackRes.error) {
-          throw new Error(fallbackRes.error.message);
-        }
-        safeRevalidate();
-        return {
-          success: true,
-          data: {
-            ...(fallbackRes.data as TeamCalendar),
-            recurring_rules: calendarData.recurring_rules,
-            blackout_dates: calendarData.blackout_dates,
-            default_view: calendarData.default_view,
-            last_reviewed_month: calendarData.last_reviewed_month,
-          },
-        };
+      const basePayload = {
+        month_label: payload.month_label,
+        image_url: payload.image_url,
+        events: payload.events,
+      };
+      const fallbackRes = targetId
+        ? await (client.from('team_calendar') as any).update(basePayload).eq('id', targetId).select().single()
+        : await (client.from('team_calendar') as any).insert(basePayload).select().single();
+
+      if (fallbackRes.error) {
+        throw new Error(fallbackRes.error.message);
       }
-      throw new Error(result.error.message);
+      safeRevalidate();
+      return {
+        success: true,
+        data: {
+          ...(fallbackRes.data as TeamCalendar),
+          events: baseEvents,
+          recurring_rules: recurringRules,
+          exceptions,
+          blackout_dates: blackoutDates,
+          default_view: cleanedCalendar.default_view || 'dynamic',
+          last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
+        },
+      };
     }
 
     safeRevalidate();
-    return { success: true, data: result.data as TeamCalendar };
+    return {
+      success: true,
+      data: {
+        ...(result.data as TeamCalendar),
+        events: baseEvents,
+        recurring_rules: recurringRules,
+        exceptions,
+        blackout_dates: blackoutDates,
+        default_view: cleanedCalendar.default_view || 'dynamic',
+        last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
+      },
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to update calendar';
     return { success: false, error: message };
