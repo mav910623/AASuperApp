@@ -248,6 +248,7 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
                   <img
                     src={currentImageUrl}
                     alt="Monthly Calendar Flyer"
+                    loading="lazy"
                     className="w-full h-full object-contain max-h-52 rounded-xl"
                   />
                 </div>

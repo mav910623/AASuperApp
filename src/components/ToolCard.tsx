@@ -152,6 +152,7 @@ export function ToolCard({ tool }: ToolCardProps) {
                     src={tool.thumbnail_url}
                     alt={title}
                     fill
+                    unoptimized
                     sizes="(max-width: 640px) 100vw, 560px"
                     className="object-cover transition-transform duration-300 group-hover/thumb:scale-105"
                   />
@@ -215,6 +216,7 @@ export function ToolCard({ tool }: ToolCardProps) {
                 src={tool.thumbnail_url || url}
                 alt={title}
                 fill
+                unoptimized
                 sizes="(max-width: 640px) 100vw, 560px"
                 className="object-cover transition-transform duration-300 group-hover/img:scale-105"
               />
@@ -237,6 +239,7 @@ export function ToolCard({ tool }: ToolCardProps) {
                 src={tool.thumbnail_url}
                 alt={title}
                 fill
+                unoptimized
                 sizes="(max-width: 640px) 100vw, 560px"
                 className="object-cover opacity-35"
               />

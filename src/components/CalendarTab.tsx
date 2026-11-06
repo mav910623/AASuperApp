@@ -62,6 +62,7 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
               src={imageUrl}
               alt={monthLabel}
               fill
+              unoptimized
               sizes="(max-width: 640px) 100vw, 640px"
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
