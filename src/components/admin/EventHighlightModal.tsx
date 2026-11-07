@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Calendar, AlertCircle, Upload, Loader2, Check } from 'lucide-react';
 import { uploadMediaAction } from '@/app/actions/adminActions';
+import { parseTimeRangeTo24h, formatTimeRange } from '@/lib/calendarGenerator';
 import type { CalendarEvent } from '@/types/app';
 
 interface EventHighlightModalProps {
@@ -19,7 +20,8 @@ export function EventHighlightModal({
   event,
 }: EventHighlightModalProps) {
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [speaker, setSpeaker] = useState('');
   const [venue, setVenue] = useState('');
   const [locationOrLink, setLocationOrLink] = useState('');
@@ -35,7 +37,9 @@ export function EventHighlightModal({
   useEffect(() => {
     if (event) {
       setDate(event.date || '');
-      setTime(event.time || '');
+      const parsedTime = parseTimeRangeTo24h(event.time);
+      setStartTime(parsedTime.start);
+      setEndTime(parsedTime.end);
       setSpeaker(event.speaker || '');
       setVenue(event.venue || '');
       setLocationOrLink(event.location_or_link || '');
@@ -46,7 +50,8 @@ export function EventHighlightModal({
       setTitleBm(event.title?.bm || '');
     } else {
       setDate('');
-      setTime('');
+      setStartTime('');
+      setEndTime('');
       setSpeaker('');
       setVenue('');
       setLocationOrLink('');
@@ -87,10 +92,12 @@ export function EventHighlightModal({
       return;
     }
 
+    const formattedTime = formatTimeRange(startTime, endTime);
+
     const newEvent: CalendarEvent = {
       id: event?.id || `event-${Date.now()}`,
       date: date.trim(),
-      time: time.trim(),
+      time: formattedTime,
       speaker: speaker.trim(),
       venue: venue.trim(),
       location_or_link: locationOrLink.trim(),
@@ -174,7 +181,7 @@ export function EventHighlightModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 Date (YYYY-MM-DD) *
@@ -191,17 +198,33 @@ export function EventHighlightModal({
 
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Time
+                Start Time <span className="text-amber-500">*</span>
               </label>
               <input
-                type="text"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                placeholder="2:00 PM - 6:00 PM"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                End Time <span className="text-zinc-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
                 className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
+          {startTime && (
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              Formatted: <span className="font-semibold text-amber-600 dark:text-amber-400">{formatTimeRange(startTime, endTime)}</span>
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-2">
             <div>

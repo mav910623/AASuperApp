@@ -212,10 +212,10 @@ export function TabSectionsTools({
       const saved = res.data;
       setTools((prev) => {
         const exists = prev.some((t) => t.id === saved.id);
-        if (exists) {
-          return prev.map((t) => (t.id === saved.id ? saved : t));
-        }
-        return [saved, ...prev];
+        const list = exists
+          ? prev.map((t) => (t.id === saved.id ? saved : t))
+          : [...prev, saved];
+        return list.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
       });
       onNotify('Tool saved successfully');
       return true;

@@ -13,6 +13,7 @@ import { EventDetailsModal } from '@/components/EventDetailsModal';
 import {
   getEventsForCalendar,
   getActiveDailyMeetings,
+  hasMeetingPassed,
   type GeneratedScheduleEvent,
 } from '@/lib/calendarGenerator';
 import {
@@ -107,16 +108,19 @@ export function MainView({
     const monthlyEvents = getEventsForCalendar(initialCalendar, year, month, { excludeDaily: true });
     const dailyMeetings = getActiveDailyMeetings(initialCalendar);
 
-    // 1. Check if there's a specific meeting today
-    const todayEvent = monthlyEvents.find((e) => e.date === todayStr);
-    if (todayEvent) {
-      return { event: todayEvent, isToday: true, label: 'Today' };
+    // 1. Check if there's a specific meeting today that has not passed
+    const upcomingTodayEvents = monthlyEvents.filter(
+      (e) => e.date === todayStr && !hasMeetingPassed(todayStr, e.time, now)
+    );
+    if (upcomingTodayEvents.length > 0) {
+      return { event: upcomingTodayEvents[0], isToday: true, label: 'Today' };
     }
 
-    // 2. Or if an active Daily meeting is running
-    if (dailyMeetings.length > 0) {
+    // 2. Fall back to active daily meeting today that has not passed
+    const upcomingDaily = dailyMeetings.filter((dm) => !hasMeetingPassed(todayStr, dm.time, now));
+    if (upcomingDaily.length > 0) {
       const dailyToday: GeneratedScheduleEvent = {
-        ...dailyMeetings[0],
+        ...upcomingDaily[0],
         date: todayStr,
       };
       return { event: dailyToday, isToday: true, label: 'Today (Daily)' };
@@ -131,10 +135,21 @@ export function MainView({
     return null;
   }, [initialCalendar]);
 
-  // Filter visible sections dynamically from Supabase
+  // Filter visible sections dynamically from Supabase, sorted by sort_order
   const visibleSections = useMemo(() => {
-    return (initialSections || []).filter((s) => s.is_visible !== false);
+    return (initialSections || [])
+      .filter((s) => s.is_visible !== false)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }, [initialSections]);
+
+  // Section sort order lookup map (sec.id -> sec.sort_order)
+  const sectionOrderMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    visibleSections.forEach((sec, idx) => {
+      map[sec.id] = typeof sec.sort_order === 'number' ? sec.sort_order : idx + 1;
+    });
+    return map;
+  }, [visibleSections]);
 
   // Dynamic tool count per section
   const sectionToolCounts = useMemo(() => {
@@ -201,10 +216,12 @@ export function MainView({
       return true;
     });
 
-    // 3. Featured tools ALWAYS sort to the top, then by sort_order
+    // 3. Keep sections in order and respect tool sort_order strictly
     result.sort((a, b) => {
-      if (a.is_featured !== b.is_featured) {
-        return a.is_featured ? -1 : 1;
+      const secA = sectionOrderMap[a.section_id] ?? 999;
+      const secB = sectionOrderMap[b.section_id] ?? 999;
+      if (secA !== secB) {
+        return secA - secB;
       }
       return (a.sort_order ?? 0) - (b.sort_order ?? 0);
     });
@@ -215,21 +232,19 @@ export function MainView({
     activeSectionTools,
     searchQuery,
     contentLangFilter,
+    sectionOrderMap,
   ]);
 
-  // "WhatsApp Full Section" formatted sharing
-  const handleShareFullSection = () => {
-    const targetTools = activeSectionTools;
-    if (targetTools.length === 0) return;
+  // "WhatsApp Full Section" formatted sharing for a specific section
+  const handleShareSection = (targetSection: Section, toolsToShare: Tool[]) => {
+    if (toolsToShare.length === 0) return;
 
-    const secTitle = activeSection
-      ? getLocalized(activeSection.title) || activeSection.slug
-      : t('all', 'All Resources');
-    const secDesc = activeSection ? getLocalized(activeSection.description) : '';
+    const secTitle = getLocalized(targetSection.title) || targetSection.slug;
+    const secDesc = getLocalized(targetSection.description) || '';
 
     const header = `🔥 *${secTitle}*${secDesc ? `\n_${secDesc}_\n` : '\n'}\n`;
 
-    const toolsList = targetTools
+    const toolsList = toolsToShare
       .map((tool, idx) => {
         const toolTitle = getLocalized(tool.title) || 'Resource';
         const toolUrl = getLocalized(tool.url);
@@ -238,8 +253,8 @@ export function MainView({
       })
       .join('\n\n');
 
-    const sectionLink = activeSection && typeof window !== 'undefined'
-      ? `\n\n🔗 Open Section: ${window.location.origin}?section=${encodeURIComponent(activeSection.slug || activeSection.id)}`
+    const sectionLink = typeof window !== 'undefined'
+      ? `\n\n🔗 Open Section: ${window.location.origin}?section=${encodeURIComponent(targetSection.slug || targetSection.id)}`
       : '';
 
     const fullMsg = `${header}${toolsList}${sectionLink}\n\n_Shared via AA Team Hub_`;
@@ -247,16 +262,36 @@ export function MainView({
     window.location.href = waUrl;
   };
 
-  // Saved Tools List
+  const handleShareFullSection = () => {
+    if (activeSection) {
+      handleShareSection(activeSection, activeSectionTools);
+    } else {
+      const targetTools = activeSectionTools;
+      if (targetTools.length === 0) return;
+
+      const secTitle = t('all', 'All Resources');
+      const header = `🔥 *${secTitle}*\n\n`;
+
+      const toolsList = targetTools
+        .map((tool, idx) => {
+          const toolTitle = getLocalized(tool.title) || 'Resource';
+          const toolUrl = getLocalized(tool.url);
+          const speaker = tool.speaker_name ? ` (${tool.speaker_name})` : '';
+          return `${idx + 1}. *${toolTitle}*${speaker}\n👉 ${toolUrl}`;
+        })
+        .join('\n\n');
+
+      const fullMsg = `${header}${toolsList}\n\n_Shared via AA Team Hub_`;
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(fullMsg)}`;
+      window.location.href = waUrl;
+    }
+  };
+
+  // Saved Tools List - strictly respects sort_order
   const savedTools = useMemo(() => {
     return initialTools
       .filter((tool) => savedToolIds.includes(tool.id))
-      .sort((a, b) => {
-        if (a.is_featured !== b.is_featured) {
-          return a.is_featured ? -1 : 1;
-        }
-        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-      });
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }, [initialTools, savedToolIds]);
 
   return (
@@ -317,7 +352,80 @@ export function MainView({
             />
 
             <div className="space-y-4 px-4">
-              {filteredTools.length > 0 ? (
+              {activeSectionId === 'all' && !searchQuery.trim() ? (
+                filteredTools.length > 0 ? (
+                  <div className="space-y-6">
+                    {visibleSections.map((sec) => {
+                      const secTools = filteredTools
+                        .filter((t) => t.section_id === sec.id)
+                        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+                      if (secTools.length === 0) return null;
+
+                      const SecIcon = SECTION_ICON_MAP[sec.icon_name] || Folder;
+                      const secTitle = getLocalized(sec.title) || sec.slug;
+
+                      return (
+                        <div key={sec.id} className="space-y-3">
+                          {/* Sleek section divider header */}
+                          <div className="flex items-center justify-between gap-2 pt-2 pb-1.5 border-b border-zinc-200/80 dark:border-zinc-800/80">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-[#1E40AF] dark:bg-blue-950/60 dark:text-blue-300 flex-shrink-0">
+                                <SecIcon className="h-3.5 w-3.5" />
+                              </div>
+                              <h3 className="text-xs sm:text-sm font-bold tracking-tight text-zinc-950 dark:text-zinc-50 truncate">
+                                {secTitle}
+                              </h3>
+                              <span className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 flex-shrink-0">
+                                ({secTools.length})
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleShareSection(sec, secTools)}
+                              className="px-2.5 py-1 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-[11px] font-bold inline-flex items-center gap-1 flex-shrink-0 shadow-xs active:scale-95 transition-all select-none"
+                            >
+                              <Share2 className="h-3 w-3" />
+                              <span>Share Set</span>
+                            </button>
+                          </div>
+
+                          {/* Section Tools */}
+                          <div className="space-y-3.5">
+                            {secTools.map((tool) => (
+                              <ToolCard key={tool.id} tool={tool} />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-800 p-10 text-center bg-white/50 dark:bg-zinc-900/30">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500 mb-3">
+                      <FolderX className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                      {t('empty_section', 'No tools match your filter.')}
+                    </h3>
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 max-w-xs">
+                      Try adjusting your search query or content language filter.
+                    </p>
+                    {(searchQuery || contentLangFilter !== 'all') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery('');
+                          setContentLangFilter('all');
+                        }}
+                        className="mt-4 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-bold text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 transition-colors"
+                      >
+                        Clear Filters
+                      </button>
+                    )}
+                  </div>
+                )
+              ) : filteredTools.length > 0 ? (
                 filteredTools.map((tool) => <ToolCard key={tool.id} tool={tool} />)
               ) : (
                 <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-800 p-10 text-center bg-white/50 dark:bg-zinc-900/30">

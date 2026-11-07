@@ -151,6 +151,7 @@ export function ToolModal({ isOpen, onClose, onSave, tool, sections }: ToolModal
       duration: type === 'pdf' ? '📄 PDF Guide' : type === 'soundcloud' ? '🎧 Audio' : '',
       is_featured: isFeatured,
       is_visible: isVisible,
+      sort_order: tool?.sort_order,
       available_languages: [toolLang],
       title: {
         en: cleanTitle,

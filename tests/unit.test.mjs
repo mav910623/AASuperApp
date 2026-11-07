@@ -891,5 +891,65 @@ test('calendar: pruneCalendarData removes outdated flyer older than 60 days', as
 });
 
 
+// Test 27: Time-awareness and range parsing/formatting helpers
+test('calendar: hasMeetingPassed correctly evaluates past/future dates and intraday meeting times', async () => {
+  const { hasMeetingPassed, parseTimeRangeTo24h, formatTimeRange } = await import('../src/lib/calendarGenerator.ts');
+
+  // Format helpers
+  const parsed = parseTimeRangeTo24h('8:30 PM - 10:00 PM');
+  assert.equal(parsed.start, '20:30');
+  assert.equal(parsed.end, '22:00');
+
+  const formatted = formatTimeRange('20:30', '22:00');
+  assert.equal(formatted, '8:30 PM - 10:00 PM');
+
+  const formattedSingle = formatTimeRange('09:00');
+  assert.equal(formattedSingle, '9:00 AM');
+
+  // Time-awareness
+  const baseDate = new Date(2026, 10, 15, 14, 0, 0); // 2026-11-15 at 2:00 PM (14:00)
+
+  // Past date
+  assert.equal(hasMeetingPassed('2026-11-14', '10:00 AM', baseDate), true);
+  // Future date
+  assert.equal(hasMeetingPassed('2026-11-16', '10:00 AM', baseDate), false);
+
+  // Today (2026-11-15) - meeting ended at 1:00 PM (13:00) -> passed
+  assert.equal(hasMeetingPassed('2026-11-15', '11:00 AM - 1:00 PM', baseDate), true);
+
+  // Today - meeting running or future (2:00 PM - 4:00 PM) -> not passed
+  assert.equal(hasMeetingPassed('2026-11-15', '2:00 PM - 4:00 PM', baseDate), false);
+
+  // Today - single time (12:00 PM + 60m buffer = 1:00 PM) -> passed at 2:00 PM
+  assert.equal(hasMeetingPassed('2026-11-15', '12:00 PM', baseDate), true);
+
+  // Today - single time (1:30 PM + 60m buffer = 2:30 PM) -> not passed at 2:00 PM
+  assert.equal(hasMeetingPassed('2026-11-15', '1:30 PM', baseDate), false);
+});
+
+// Test 28: splitUpcomingMeetings filters out today meetings that have already passed
+test('calendar: splitUpcomingMeetings time-aware filtering excludes passed today meetings', async () => {
+  const { splitUpcomingMeetings } = await import('../src/lib/calendarGenerator.ts');
+
+  const fixedNow = new Date(2026, 10, 15, 15, 30, 0); // 2026-11-15 at 3:30 PM
+
+  const events = [
+    { id: 'm1', date: '2026-11-15', time: '10:00 AM - 11:30 AM' }, // today, passed
+    { id: 'm2', date: '2026-11-15', time: '8:00 PM - 9:30 PM' },   // today, upcoming
+    { id: 'm3', date: '2026-11-18', time: '8:00 PM' },             // future 1
+    { id: 'm4', date: '2026-11-22', time: '2:00 PM' },             // future 2
+  ];
+
+  const { nextTwo, remaining } = splitUpcomingMeetings(events, '2026-11-15', fixedNow);
+
+  // m1 is passed today, so nextTwo should be m2 and m3
+  assert.equal(nextTwo.length, 2);
+  assert.equal(nextTwo[0].id, 'm2');
+  assert.equal(nextTwo[1].id, 'm3');
+  assert.equal(remaining.length, 1);
+  assert.equal(remaining[0].id, 'm4');
+});
+
+
 
 

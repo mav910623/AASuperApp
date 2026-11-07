@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
-import type { GeneratedScheduleEvent } from '@/lib/calendarGenerator';
+import {
+  parseTimeRangeTo24h,
+  formatTimeRange,
+  type GeneratedScheduleEvent,
+} from '@/lib/calendarGenerator';
 import type { MeetingException } from '@/types/app';
 import { useApp } from '@/context/AppContext';
 
@@ -22,7 +26,8 @@ export function InstanceOverrideModal({
   const { getLocalized } = useApp();
 
   const [targetDate, setTargetDate] = useState('');
-  const [time, setTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [title, setTitle] = useState('');
   const [speaker, setSpeaker] = useState('');
   const [venue, setVenue] = useState('');
@@ -33,7 +38,9 @@ export function InstanceOverrideModal({
   useEffect(() => {
     if (instance) {
       setTargetDate(instance.date || '');
-      setTime(instance.time || '');
+      const parsedTime = parseTimeRangeTo24h(instance.time);
+      setStartTime(parsedTime.start);
+      setEndTime(parsedTime.end);
       setTitle(getLocalized(instance.title) || '');
       setSpeaker(instance.speaker || '');
       setVenue(instance.venue || '');
@@ -53,6 +60,7 @@ export function InstanceOverrideModal({
     const cleanZoom = zoomLink.trim();
     const cleanLoc = locationAddress.trim();
     const cleanVenue = venue.trim();
+    const formattedTime = formatTimeRange(startTime, endTime);
 
     const exception: MeetingException = {
       id: `ex-${Date.now()}`,
@@ -60,7 +68,7 @@ export function InstanceOverrideModal({
       original_date: instance.original_date || instance.date,
       action: 'modify',
       new_date: targetDate.trim(),
-      new_time: time.trim() || undefined,
+      new_time: formattedTime || undefined,
       new_title: title.trim() || undefined,
       new_speaker: speaker.trim() || undefined,
       new_venue: cleanVenue || undefined,
@@ -134,19 +142,36 @@ export function InstanceOverrideModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                Time
-              </label>
-              <input
-                type="text"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                placeholder="e.g. 8:00 PM - 9:30 PM"
-                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
-              />
+          <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  Start Time <span className="text-amber-500">*</span>
+                </label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  End Time <span className="text-zinc-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
             </div>
+            {startTime && (
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                Formatted: <span className="font-semibold text-amber-600 dark:text-amber-400">{formatTimeRange(startTime, endTime)}</span>
+              </p>
+            )}
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
                 Speaker

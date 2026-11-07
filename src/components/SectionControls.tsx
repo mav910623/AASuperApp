@@ -73,19 +73,28 @@ export function SectionControls({
 }: SectionControlsProps) {
   const { t, getLocalized } = useApp();
 
-  // Smart sticky on scroll up & hide on scroll down
-  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  // Smooth slide-down sticky section bar on scroll up
   const [isScrolledPast, setIsScrolledPast] = useState(false);
+  const [showFloatingBar, setShowFloatingBar] = useState(false);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsScrolledPast(currentScrollY > 120);
-      if (currentScrollY > lastScrollY && currentScrollY > 120) {
-        setIsScrollingDown(true);
-      } else if (currentScrollY < lastScrollY) {
-        setIsScrollingDown(false);
+      const past = currentScrollY > 140;
+      setIsScrolledPast(past);
+
+      if (!past) {
+        setShowFloatingBar(false);
+      } else {
+        const diff = lastScrollY - currentScrollY;
+        if (diff > 6) {
+          // Scrolling up by > 6px
+          setShowFloatingBar(true);
+        } else if (diff < -6) {
+          // Scrolling down by > 6px
+          setShowFloatingBar(false);
+        }
       }
       lastScrollY = currentScrollY;
     };
@@ -167,85 +176,91 @@ export function SectionControls({
       </div>
 
       {/* 2) Dynamic Section Selector Grid / Segmented Cards */}
-      <div
-        className={`sticky top-16 z-20 bg-zinc-50/95 dark:bg-black/95 backdrop-blur-md py-2 border-b border-zinc-200/60 dark:border-zinc-800/60 transition-transform duration-200 ${
-          isScrolledPast && isScrollingDown
-            ? '-translate-y-full opacity-0 pointer-events-none'
-            : 'translate-y-0 opacity-100'
-        }`}
-      >
-        <div className="no-scrollbar flex items-center gap-2 overflow-x-auto px-4">
-          {/* All Section Card */}
-          <button
-            type="button"
-            onClick={() => onSelectSection('all')}
-            className={`flex flex-shrink-0 items-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
-              activeSectionId === 'all'
-                ? 'bg-[#1E40AF] text-white shadow-sm ring-1 ring-[#1E40AF]'
-                : 'bg-white text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-800 shadow-xs'
-            }`}
-          >
-            <div
-              className={`flex h-6 w-6 items-center justify-center rounded-lg ${
+      <div className="h-14">
+        <div
+          className={
+            isScrolledPast
+              ? `fixed top-16 left-0 right-0 z-30 mx-auto max-w-xl bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md py-2 border-b border-zinc-200/80 dark:border-zinc-800/80 shadow-md transition-all duration-200 ${
+                  showFloatingBar
+                    ? 'translate-y-0 opacity-100'
+                    : '-translate-y-full opacity-0 pointer-events-none'
+                }`
+              : 'py-2 border-b border-zinc-200/60 dark:border-zinc-800/60'
+          }
+        >
+          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto px-4">
+            {/* All Section Card */}
+            <button
+              type="button"
+              onClick={() => onSelectSection('all')}
+              className={`flex flex-shrink-0 items-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
                 activeSectionId === 'all'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
+                  ? 'bg-[#1E40AF] text-white shadow-sm ring-1 ring-[#1E40AF]'
+                  : 'bg-white text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-800 shadow-xs'
               }`}
             >
-              <Layers className="h-3.5 w-3.5" />
-            </div>
-            <span>{t('all', 'All')}</span>
-            <span
-              className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
-                activeSectionId === 'all'
-                  ? 'bg-white text-[#1E40AF]'
-                  : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
-              }`}
-            >
-              {totalToolsCount}
-            </span>
-          </button>
-
-          {/* Dynamic Visible Sections from Supabase */}
-          {visibleSections.map((sec) => {
-            const isActive = activeSectionId === sec.id;
-            const IconComp = SECTION_ICON_MAP[sec.icon_name] || Folder;
-            const sectionTitle = getLocalized(sec.title) || sec.slug;
-            const count = sectionToolCounts[sec.id] || 0;
-
-            return (
-              <button
-                key={sec.id}
-                type="button"
-                onClick={() => onSelectSection(sec.id)}
-                className={`flex flex-shrink-0 items-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
-                  isActive
-                    ? 'bg-[#1E40AF] text-white shadow-sm ring-1 ring-[#1E40AF]'
-                    : 'bg-white text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-800 shadow-xs'
+              <div
+                className={`flex h-6 w-6 items-center justify-center rounded-lg ${
+                  activeSectionId === 'all'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
                 }`}
               >
-                <div
-                  className={`flex h-6 w-6 items-center justify-center rounded-lg ${
+                <Layers className="h-3.5 w-3.5" />
+              </div>
+              <span>{t('all', 'All')}</span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
+                  activeSectionId === 'all'
+                    ? 'bg-white text-[#1E40AF]'
+                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+                }`}
+              >
+                {totalToolsCount}
+              </span>
+            </button>
+
+            {/* Dynamic Visible Sections from Supabase */}
+            {visibleSections.map((sec) => {
+              const isActive = activeSectionId === sec.id;
+              const IconComp = SECTION_ICON_MAP[sec.icon_name] || Folder;
+              const sectionTitle = getLocalized(sec.title) || sec.slug;
+              const count = sectionToolCounts[sec.id] || 0;
+
+              return (
+                <button
+                  key={sec.id}
+                  type="button"
+                  onClick={() => onSelectSection(sec.id)}
+                  className={`flex flex-shrink-0 items-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
                     isActive
-                      ? 'bg-white/20 text-white'
-                      : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
+                      ? 'bg-[#1E40AF] text-white shadow-sm ring-1 ring-[#1E40AF]'
+                      : 'bg-white text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-800 shadow-xs'
                   }`}
                 >
-                  <IconComp className="h-3.5 w-3.5" />
-                </div>
-                <span className="truncate max-w-[130px]">{sectionTitle}</span>
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
-                    isActive
-                      ? 'bg-white text-[#1E40AF]'
-                      : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
-                  }`}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+                  <div
+                    className={`flex h-6 w-6 items-center justify-center rounded-lg ${
+                      isActive
+                        ? 'bg-white/20 text-white'
+                        : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
+                    }`}
+                  >
+                    <IconComp className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="truncate max-w-[130px]">{sectionTitle}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
+                      isActive
+                        ? 'bg-white text-[#1E40AF]'
+                        : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Check, Loader2, Upload } from 'lucide-react';
 import { uploadMediaAction } from '@/app/actions/adminActions';
+import { parseTimeRangeTo24h, formatTimeRange } from '@/lib/calendarGenerator';
 import type { MeetingSeries, MeetingFrequency } from '@/types/app';
 
 interface RecurringRuleModalProps {
@@ -37,7 +38,8 @@ export function RecurringRuleModal({ isOpen, onClose, onSave, rule }: RecurringR
   const [dayOfWeek, setDayOfWeek] = useState(4);
   const [nthWeek, setNthWeek] = useState(3);
   const [dayOfMonth, setDayOfMonth] = useState(15);
-  const [time, setTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [venue, setVenue] = useState('');
   const [zoomLink, setZoomLink] = useState('');
   const [locationAddress, setLocationAddress] = useState('');
@@ -57,7 +59,9 @@ export function RecurringRuleModal({ isOpen, onClose, onSave, rule }: RecurringR
       setDayOfWeek(rule.day_of_week ?? 4);
       setNthWeek(rule.nth_week ?? 3);
       setDayOfMonth(rule.day_of_month ?? 15);
-      setTime(rule.time || '');
+      const parsedTime = parseTimeRangeTo24h(rule.time);
+      setStartTime(parsedTime.start);
+      setEndTime(parsedTime.end);
       setVenue(rule.venue || '');
       const isHttp = rule.address_or_link?.startsWith('http');
       setZoomLink(rule.zoom_link || (isHttp ? rule.address_or_link : ''));
@@ -73,7 +77,8 @@ export function RecurringRuleModal({ isOpen, onClose, onSave, rule }: RecurringR
       setDayOfWeek(4);
       setNthWeek(3);
       setDayOfMonth(15);
-      setTime('');
+      setStartTime('');
+      setEndTime('');
       setVenue('');
       setZoomLink('');
       setLocationAddress('');
@@ -108,6 +113,7 @@ export function RecurringRuleModal({ isOpen, onClose, onSave, rule }: RecurringR
     const cleanZoom = zoomLink.trim();
     const cleanAddress = locationAddress.trim();
     const cleanVenue = venue.trim();
+    const formattedTime = formatTimeRange(startTime, endTime);
 
     onSave({
       id: rule?.id || `rule-${Date.now()}`,
@@ -118,7 +124,7 @@ export function RecurringRuleModal({ isOpen, onClose, onSave, rule }: RecurringR
         frequency === 'weekly' || frequency === 'monthly_nth_weekday' ? dayOfWeek : undefined,
       nth_week: frequency === 'monthly_nth_weekday' ? nthWeek : undefined,
       day_of_month: frequency === 'monthly_date' ? dayOfMonth : undefined,
-      time: time.trim(),
+      time: formattedTime,
       venue: cleanVenue,
       zoom_link: cleanZoom,
       location_address: cleanAddress,
@@ -268,11 +274,36 @@ export function RecurringRuleModal({ isOpen, onClose, onSave, rule }: RecurringR
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Time</label>
-              <input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="7:30 AM - 8:00 AM" className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs" />
+          <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  Start Time <span className="text-amber-500">*</span>
+                </label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  End Time <span className="text-zinc-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
             </div>
+            {startTime && (
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                Formatted: <span className="font-semibold text-amber-600 dark:text-amber-400">{formatTimeRange(startTime, endTime)}</span>
+              </p>
+            )}
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Speaker</label>
               <input type="text" value={speaker} onChange={(e) => setSpeaker(e.target.value)} placeholder="COEV Leaders" className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs" />

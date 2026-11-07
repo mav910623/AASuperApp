@@ -320,18 +320,130 @@ export function getEventsForCalendar(
 }
 
 /**
+ * Time-awareness and formatting helpers
+ */
+
+function parseSingleTimeTo24h(str: string): { hour: number; minute: number; str24: string } | null {
+  if (!str) return null;
+  const match = str.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+  if (!match) return null;
+
+  let hour = parseInt(match[1], 10);
+  const minute = match[2] ? parseInt(match[2], 10) : 0;
+  const period = match[3] ? match[3].toUpperCase() : null;
+
+  if (period === 'PM' && hour < 12) {
+    hour += 12;
+  } else if (period === 'AM' && hour === 12) {
+    hour = 0;
+  }
+
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    return null;
+  }
+
+  const str24 = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  return { hour, minute, str24 };
+}
+
+/**
+ * Parses time range string (e.g. "8:00 PM - 9:30 PM" or "20:00 - 21:30") into 24h { start, end }.
+ */
+export function parseTimeRangeTo24h(timeStr?: string): { start: string; end: string } {
+  if (!timeStr || !timeStr.trim()) {
+    return { start: '', end: '' };
+  }
+  const parts = timeStr.trim().split(/\s*(?:-|–|—|\bto\b)\s*/i);
+  const startObj = parts[0] ? parseSingleTimeTo24h(parts[0]) : null;
+  const endObj = parts[1] ? parseSingleTimeTo24h(parts[1]) : null;
+
+  return {
+    start: startObj ? startObj.str24 : '',
+    end: endObj ? endObj.str24 : '',
+  };
+}
+
+function formatSingleTime12h(time24: string): string {
+  const parts = time24.split(':');
+  if (parts.length < 2) return time24;
+  let hour = parseInt(parts[0], 10);
+  const min = parts[1];
+  if (isNaN(hour)) return time24;
+
+  const period = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12;
+  return `${hour}:${min} ${period}`;
+}
+
+/**
+ * Formats 24h start/end into clean 12h AM/PM range e.g. "8:00 PM - 9:30 PM".
+ */
+export function formatTimeRange(start24: string, end24?: string): string {
+  if (!start24 || !start24.trim()) return '';
+  const formattedStart = formatSingleTime12h(start24.trim());
+  if (end24 && end24.trim()) {
+    const formattedEnd = formatSingleTime12h(end24.trim());
+    return `${formattedStart} - ${formattedEnd}`;
+  }
+  return formattedStart;
+}
+
+/**
+ * Checks if a meeting has passed based on dateStr and timeStr compared to now.
+ * - Date < todayIso: passed (true)
+ * - Date > todayIso: upcoming (false)
+ * - Date === todayIso (or empty date for today's daily): checks time range.
+ */
+export function hasMeetingPassed(
+  dateStr: string,
+  timeStr?: string,
+  now: Date = new Date()
+): boolean {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayIso = `${year}-${month}-${day}`;
+
+  if (dateStr && dateStr < todayIso) return true;
+  if (dateStr && dateStr > todayIso) return false;
+
+  // When dateStr === todayIso or !dateStr (e.g. daily meeting checked for today)
+  if (!timeStr || !timeStr.trim()) return false;
+
+  const parsed = parseTimeRangeTo24h(timeStr);
+  let targetMinutes: number;
+
+  if (parsed.end) {
+    const [h, m] = parsed.end.split(':').map((v) => parseInt(v, 10));
+    targetMinutes = h * 60 + m;
+  } else if (parsed.start) {
+    const [h, m] = parsed.start.split(':').map((v) => parseInt(v, 10));
+    // Start time + 60 min buffer
+    targetMinutes = h * 60 + m + 60;
+  } else {
+    return false;
+  }
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  return currentMinutes > targetMinutes;
+}
+
+/**
  * Divides generated events into:
- * 1) The next 2 upcoming meetings (from today's date forward)
+ * 1) The next 2 upcoming meetings (from today's date forward, filtering out passed meetings)
  * 2) The rest of the meetings for this month
  */
 export function splitUpcomingMeetings(
   events: GeneratedScheduleEvent[],
-  todayIsoDate: string
+  todayIsoDate: string,
+  now: Date = new Date()
 ): {
   nextTwo: GeneratedScheduleEvent[];
   remaining: GeneratedScheduleEvent[];
 } {
-  const upcoming = events.filter((e) => e.date >= todayIsoDate);
+  const upcoming = events.filter(
+    (e) => e.date >= todayIsoDate && !hasMeetingPassed(e.date, e.time, now)
+  );
   const nextTwo = upcoming.slice(0, 2);
   const remaining = upcoming.slice(2);
   return { nextTwo, remaining };

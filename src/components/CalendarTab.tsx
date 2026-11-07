@@ -20,6 +20,7 @@ import {
   getEventsForCalendar,
   splitUpcomingMeetings,
   getActiveDailyMeetings,
+  hasMeetingPassed,
   type GeneratedScheduleEvent,
 } from '@/lib/calendarGenerator';
 import { ImageLightbox } from '@/components/ImageLightbox';
@@ -85,9 +86,9 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
     return map;
   }, [monthlyEvents]);
 
-  // Split upcoming 2 meetings & remaining meetings
+  // Split upcoming 2 meetings & remaining meetings (time-aware: past meetings excluded)
   const { nextTwo, remaining } = useMemo(() => {
-    return splitUpcomingMeetings(monthlyEvents, todayIsoDate);
+    return splitUpcomingMeetings(monthlyEvents, todayIsoDate, now);
   }, [monthlyEvents, todayIsoDate]);
 
   // Grid calculation: days in month, starting day of week
@@ -186,16 +187,26 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
               <div className="space-y-2">
                 {dailyMeetings.map((dm) => {
                   const dmTitle = getLocalized(dm.title);
+                  const isPassed = hasMeetingPassed(todayIsoDate, dm.time, now);
                   return (
                     <div
                       key={dm.id}
-                      className="flex items-center justify-between gap-3 p-2.5 rounded-2xl bg-white dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80"
+                      className={`flex items-center justify-between gap-3 p-2.5 rounded-2xl border transition-all ${
+                        isPassed
+                          ? 'bg-zinc-50/80 dark:bg-zinc-900/60 border-zinc-200/50 dark:border-zinc-800/50 opacity-60'
+                          : 'bg-white dark:bg-zinc-800/80 border-zinc-200/80 dark:border-zinc-700/80'
+                      }`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                          <span className={`text-xs font-bold ${isPassed ? 'text-zinc-500 dark:text-zinc-400 line-through' : 'text-amber-600 dark:text-amber-400'}`}>
                             {dm.time}
                           </span>
+                          {isPassed && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-200/80 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                              Completed Today
+                            </span>
+                          )}
                           <h5 className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 truncate">
                             {dmTitle}
                           </h5>
@@ -209,9 +220,13 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
                       <button
                         type="button"
                         onClick={() => setSelectedEvent({ ...dm, date: todayIsoDate })}
-                        className="flex-shrink-0 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all active:scale-95 shadow-xs"
+                        className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-xs ${
+                          isPassed
+                            ? 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200 hover:bg-zinc-300'
+                            : 'bg-amber-500 hover:bg-amber-600 text-white'
+                        }`}
                       >
-                        Details / Join
+                        {isPassed ? 'Details' : 'Details / Join'}
                       </button>
                     </div>
                   );

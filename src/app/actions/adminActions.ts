@@ -510,7 +510,7 @@ export async function upsertToolAction(tool: Partial<Tool>): Promise<ActionRespo
       : [];
     const safeLanguages: LanguageCode[] = filteredLangs.length > 0 ? filteredLangs : ['en'];
 
-    const payload = {
+    const basePayload = {
       section_id: tool.section_id,
       type: tool.type || 'link',
       title: {
@@ -548,22 +548,40 @@ export async function upsertToolAction(tool: Partial<Tool>): Promise<ActionRespo
       },
       thumbnail_url: tool.thumbnail_url?.trim() || '',
       is_featured: Boolean(tool.is_featured),
-      sort_order: typeof tool.sort_order === 'number' ? tool.sort_order : 0,
       is_visible: tool.is_visible !== false,
     };
 
     let result;
     if (isValidUuid(tool.id)) {
+      const updatePayload: Database['public']['Tables']['tools']['Update'] = {
+        ...basePayload,
+        ...(typeof tool.sort_order === 'number' ? { sort_order: tool.sort_order } : {}),
+      };
       result = await client
         .from('tools')
-        .update(payload)
+        .update(updatePayload)
         .eq('id', tool.id!)
         .select()
         .single();
     } else {
+      let newOrder = tool.sort_order;
+      if (typeof newOrder !== 'number') {
+        const { data: maxRow } = await client
+          .from('tools')
+          .select('sort_order')
+          .eq('section_id', tool.section_id)
+          .order('sort_order', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        newOrder = typeof maxRow?.sort_order === 'number' ? maxRow.sort_order + 1 : 1;
+      }
+      const insertPayload: Database['public']['Tables']['tools']['Insert'] = {
+        ...basePayload,
+        sort_order: newOrder,
+      };
       result = await client
         .from('tools')
-        .insert(payload)
+        .insert(insertPayload)
         .select()
         .single();
     }
