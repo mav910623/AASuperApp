@@ -169,12 +169,6 @@ export function ToolCard({ tool }: ToolCardProps) {
                     <Play className="h-6 w-6 fill-white ml-1" />
                   </div>
                 </div>
-
-                {tool.duration && (
-                  <span className="absolute bottom-2.5 right-2.5 rounded-md bg-black/80 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
-                    {tool.duration}
-                  </span>
-                )}
               </div>
             )}
           </div>
@@ -347,6 +341,12 @@ export function ToolCard({ tool }: ToolCardProps) {
             <p className="mt-2.5 text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">
               {description}
             </p>
+          )}
+
+          {url && /\.(mp3|m4a|wav|ogg)(\?.*)?$/i.test(url) && (
+            <audio controls className="w-full mt-3 h-10 rounded-xl" src={url} preload="metadata">
+              Your browser does not support the audio element.
+            </audio>
           )}
 
           <a

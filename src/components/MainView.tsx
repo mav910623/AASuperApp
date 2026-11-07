@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import type { Section, Tool, TeamCalendar } from '@/types/app';
 import { Header } from '@/components/Header';
@@ -9,6 +9,12 @@ import { SectionControls } from '@/components/SectionControls';
 import { BottomNav, type NavTab } from '@/components/BottomNav';
 import { CalendarTab } from '@/components/CalendarTab';
 import { ShareAppTab } from '@/components/ShareAppTab';
+import { EventDetailsModal } from '@/components/EventDetailsModal';
+import {
+  getEventsForCalendar,
+  getActiveDailyMeetings,
+  type GeneratedScheduleEvent,
+} from '@/lib/calendarGenerator';
 import {
   Star,
   FolderX,
@@ -68,6 +74,62 @@ export function MainView({
   const [activeTab, setActiveTab] = useState<NavTab>('tools');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSectionId, setActiveSectionId] = useState<string>('all');
+  const [bannerEventModal, setBannerEventModal] = useState<GeneratedScheduleEvent | null>(null);
+
+  // Deep-linking: ?tab=calendar and ?section=<slug_or_id>
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam === 'calendar' || tabParam === 'share' || tabParam === 'saved' || tabParam === 'tools') {
+      setActiveTab(tabParam as NavTab);
+    }
+    const sectionParam = params.get('section');
+    if (sectionParam) {
+      const found = (initialSections || []).find(
+        (s) => s.id === sectionParam || s.slug?.toLowerCase() === sectionParam.toLowerCase()
+      );
+      if (found) {
+        setActiveSectionId(found.id);
+      }
+    }
+  }, [initialSections]);
+
+  // Today's / Next Meeting Live Banner calculation
+  const liveMeetingBanner = useMemo(() => {
+    if (!initialCalendar) return null;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const todayStr = `${year}-${String(month).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    // Get events for current month (excluding daily from grid) & active daily meetings
+    const monthlyEvents = getEventsForCalendar(initialCalendar, year, month, { excludeDaily: true });
+    const dailyMeetings = getActiveDailyMeetings(initialCalendar);
+
+    // 1. Check if there's a specific meeting today
+    const todayEvent = monthlyEvents.find((e) => e.date === todayStr);
+    if (todayEvent) {
+      return { event: todayEvent, isToday: true, label: 'Today' };
+    }
+
+    // 2. Or if an active Daily meeting is running
+    if (dailyMeetings.length > 0) {
+      const dailyToday: GeneratedScheduleEvent = {
+        ...dailyMeetings[0],
+        date: todayStr,
+      };
+      return { event: dailyToday, isToday: true, label: 'Today (Daily)' };
+    }
+
+    // 3. Or next upcoming meeting this month
+    const nextUpcoming = monthlyEvents.find((e) => e.date > todayStr);
+    if (nextUpcoming) {
+      return { event: nextUpcoming, isToday: false, label: nextUpcoming.date };
+    }
+
+    return null;
+  }, [initialCalendar]);
 
   // Filter visible sections dynamically from Supabase
   const visibleSections = useMemo(() => {
@@ -176,7 +238,11 @@ export function MainView({
       })
       .join('\n\n');
 
-    const fullMsg = `${header}${toolsList}\n\n_Shared via AA Team Hub_`;
+    const sectionLink = activeSection && typeof window !== 'undefined'
+      ? `\n\n🔗 Open Section: ${window.location.origin}?section=${encodeURIComponent(activeSection.slug || activeSection.id)}`
+      : '';
+
+    const fullMsg = `${header}${toolsList}${sectionLink}\n\n_Shared via AA Team Hub_`;
     const waUrl = `https://wa.me/?text=${encodeURIComponent(fullMsg)}`;
     window.location.href = waUrl;
   };
@@ -201,6 +267,38 @@ export function MainView({
         {/* Tab 1: Tools (Main View) */}
         {activeTab === 'tools' && (
           <div className="space-y-4">
+            {/* Feature #3: One-Tap "Today's / Next Meeting" Live Banner */}
+            {liveMeetingBanner && (
+              <div className="px-4 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setBannerEventModal(liveMeetingBanner.event)}
+                  className="w-full group flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-red-500/10 via-amber-500/10 to-blue-500/10 hover:from-red-500/15 hover:via-amber-500/15 hover:to-blue-500/15 dark:from-red-950/40 dark:via-amber-950/30 dark:to-blue-950/40 border border-red-500/30 dark:border-red-500/40 shadow-xs transition-all text-left"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                    </span>
+                    <div className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                      <span className="text-red-600 dark:text-red-400 font-extrabold mr-1.5">
+                        {liveMeetingBanner.isToday ? '🔴 Today' : `📅 ${liveMeetingBanner.label}`}
+                        {liveMeetingBanner.event.time ? ` • ${liveMeetingBanner.event.time}` : ''}:
+                      </span>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                        {getLocalized(liveMeetingBanner.event.title)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 flex-shrink-0 group-hover:translate-x-0.5 transition-transform">
+                    <span>View / Join</span>
+                    <span aria-hidden="true">&rarr;</span>
+                  </div>
+                </button>
+              </div>
+            )}
+
             <SectionControls
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
@@ -215,6 +313,7 @@ export function MainView({
               activeSectionToolsCount={activeSectionTools.length}
               onShareFullSection={handleShareFullSection}
               filteredCount={filteredTools.length}
+              tools={initialTools}
             />
 
             <div className="space-y-4 px-4">
@@ -302,6 +401,13 @@ export function MainView({
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         savedCount={savedToolIds.length}
+      />
+
+      {/* 1-Tap Home Meeting Live Banner Details Modal */}
+      <EventDetailsModal
+        isOpen={Boolean(bannerEventModal)}
+        onClose={() => setBannerEventModal(null)}
+        event={bannerEventModal}
       />
     </div>
   );

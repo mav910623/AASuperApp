@@ -19,6 +19,7 @@ import type { TeamCalendar } from '@/types/app';
 import {
   getEventsForCalendar,
   splitUpcomingMeetings,
+  getActiveDailyMeetings,
   type GeneratedScheduleEvent,
 } from '@/lib/calendarGenerator';
 import { ImageLightbox } from '@/components/ImageLightbox';
@@ -64,10 +65,15 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
   const monthLabel = getLocalized(calendar?.month_label) || t('upcoming_events', 'Team Calendar');
   const imageUrl = getLocalized(calendar?.image_url);
 
-  // Generate schedule for the locked current year/month
+  // Generate schedule for the locked current year/month (excluding daily from grid spam)
   const monthlyEvents = useMemo(() => {
-    return getEventsForCalendar(calendar, currentYear, currentMonth);
+    return getEventsForCalendar(calendar, currentYear, currentMonth, { excludeDaily: true });
   }, [calendar, currentYear, currentMonth]);
+
+  // Active Daily meetings highlighted separately
+  const dailyMeetings = useMemo(() => {
+    return getActiveDailyMeetings(calendar);
+  }, [calendar]);
 
   // Group events by date string
   const eventsByDate = useMemo(() => {
@@ -99,7 +105,21 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
     }
   };
 
-  const dayDrawerEvents = dayDrawerDate ? eventsByDate[dayDrawerDate] || [] : [];
+  // Day drawer events: include active daily meetings for that specific date (unless blacked out)
+  const dayDrawerEvents = useMemo(() => {
+    if (!dayDrawerDate) return [];
+    const dateEvents = eventsByDate[dayDrawerDate] || [];
+
+    const activeDailyForDay = dailyMeetings.filter((dm) => {
+      const isBlackedOut = (calendar?.blackout_dates || []).some((b) => {
+        if (b.date !== dayDrawerDate) return false;
+        return !b.rule_id || b.rule_id === 'all' || b.rule_id === dm.series_id;
+      });
+      return !isBlackedOut;
+    }).map((dm) => ({ ...dm, date: dayDrawerDate }));
+
+    return [...activeDailyForDay, ...dateEvents];
+  }, [dayDrawerDate, eventsByDate, dailyMeetings, calendar]);
 
   return (
     <div className="w-full space-y-5 px-4 py-4 animate-in fade-in duration-200">
@@ -148,6 +168,58 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
             </span>
           </div>
 
+          {/* Dedicated Daily Meetings Highlight Card (Prevents grid & accordion overcrowding) */}
+          {dailyMeetings.length > 0 && (
+            <div className="p-3.5 sm:p-4 rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 dark:from-amber-950/40 dark:via-zinc-900 dark:to-orange-950/30 border border-amber-500/30 dark:border-amber-500/40 shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base leading-none">🔁</span>
+                  <h4 className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-zinc-50 uppercase tracking-wide">
+                    Daily Meetings
+                  </h4>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                  Runs Daily
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {dailyMeetings.map((dm) => {
+                  const dmTitle = getLocalized(dm.title);
+                  return (
+                    <div
+                      key={dm.id}
+                      className="flex items-center justify-between gap-3 p-2.5 rounded-2xl bg-white dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                            {dm.time}
+                          </span>
+                          <h5 className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 truncate">
+                            {dmTitle}
+                          </h5>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                          {dm.speaker && <span>🎙️ {dm.speaker}</span>}
+                          {dm.venue && <span>📍 {dm.venue}</span>}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedEvent({ ...dm, date: todayIsoDate })}
+                        className="flex-shrink-0 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all active:scale-95 shadow-xs"
+                      >
+                        Details / Join
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Month Calendar Grid with Meeting Titles Inside Each Day Box */}
           <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="grid grid-cols-7 text-center mb-2">
@@ -160,7 +232,10 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
 
             <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
               {Array.from({ length: startDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[64px] sm:min-h-[76px] rounded-xl bg-zinc-50/50 dark:bg-zinc-900/40" />
+                <div
+                  key={`empty-${i}`}
+                  className="min-h-[64px] sm:min-h-[76px] rounded-xl border border-zinc-100 bg-zinc-50/50 dark:border-zinc-800/60 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600"
+                />
               ))}
 
               {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -177,10 +252,10 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
                     onClick={() => setDayDrawerDate(dateStr)}
                     className={`min-h-[64px] sm:min-h-[76px] rounded-xl p-1 sm:p-1.5 flex flex-col justify-start items-start text-left transition-all border ${
                       isToday
-                        ? 'border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 shadow-xs ring-1 ring-amber-500'
+                        ? 'border-amber-500 bg-amber-50/60 dark:border-amber-500/80 dark:bg-amber-950/30 ring-1 ring-amber-500/50'
                         : hasEvents
-                        ? 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-850 hover:border-amber-400 hover:shadow-xs'
-                        : 'border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/60 dark:bg-zinc-900/40 text-zinc-400'
+                        ? 'border-blue-200/80 bg-blue-50/30 dark:border-blue-500/30 dark:bg-zinc-800/90 hover:border-blue-400 dark:hover:border-blue-400'
+                        : 'border-zinc-100 bg-zinc-50/50 dark:border-zinc-800/60 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600'
                     }`}
                   >
                     <div className="w-full flex items-center justify-between mb-1">
@@ -207,7 +282,7 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
                         return (
                           <div
                             key={ev.id}
-                            className="w-full text-[9px] sm:text-[10px] font-semibold px-1 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 truncate leading-tight"
+                            className="w-full text-[9px] sm:text-[10px] font-semibold px-1 py-0.5 rounded bg-blue-600 text-white dark:bg-blue-500/25 dark:text-blue-200 dark:border dark:border-blue-400/30 truncate leading-tight"
                             title={titleText}
                           >
                             {titleText}
@@ -395,7 +470,7 @@ export function CalendarTab({ calendar }: CalendarTabProps) {
                       onClick={() => {
                         setSelectedEvent(ev);
                       }}
-                      className="cursor-pointer p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-850 hover:border-amber-400 hover:shadow-xs transition-all flex items-start justify-between gap-3"
+                      className="cursor-pointer p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/80 hover:border-amber-400 hover:shadow-xs transition-all flex items-start justify-between gap-3"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">

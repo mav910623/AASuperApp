@@ -70,6 +70,8 @@ export type CalendarEvent = {
   title: LocalizedString;
   speaker: string;
   venue?: string;
+  zoom_link?: string;
+  location_address?: string;
   location_or_link: string;
   description?: string;
   image_url?: string;
@@ -92,7 +94,9 @@ export type MeetingSeries = {
   day_of_month?: number; // 1..31
   time: string;
   speaker: string;
-  venue: string;
+  venue?: string;
+  zoom_link?: string;
+  location_address?: string;
   address_or_link: string;
   description: string;
   image_url: string;
@@ -112,6 +116,8 @@ export type MeetingException = {
   new_title?: string;
   new_speaker?: string;
   new_venue?: string;
+  new_zoom_link?: string;
+  new_location_address?: string;
   new_address_or_link?: string;
   new_description?: string;
   new_image_url?: string;
@@ -135,6 +141,7 @@ export type TeamCalendar = {
   blackout_dates?: BlackoutDate[];
   default_view?: 'flyer' | 'dynamic';
   last_reviewed_month?: string; // YYYY-MM
+  flyer_uploaded_at?: string;
   created_at?: string;
   updated_at?: string;
 };

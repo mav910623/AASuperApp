@@ -58,6 +58,10 @@ src/
       adminActions.ts
     admin/
       page.tsx
+    icon-192/
+      route.tsx
+    icon-512/
+      route.tsx
     apple-icon.tsx
     favicon.ico
     globals.css
@@ -120,44 +124,6 @@ tsconfig.json
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="public/icons/icon.svg">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#18181b"/>
-      <stop offset="100%" stop-color="#09090b"/>
-    </linearGradient>
-    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3b82f6"/>
-      <stop offset="50%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#a855f7"/>
-    </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="12" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-  </defs>
-  
-  <!-- Rounded App Icon Background -->
-  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
-  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="#27272a" stroke-width="4"/>
-  
-  <!-- Subtle glowing core -->
-  <circle cx="256" cy="256" r="140" fill="url(#accentGrad)" opacity="0.12" filter="url(#glow)"/>
-
-  <!-- Stylized Modern Emblem (Layered "T" and "H" / Portal Hub) -->
-  <g fill="none" stroke="url(#accentGrad)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Outer hexagonal or hub connector -->
-    <path d="M 160 160 L 352 160" />
-    <path d="M 256 160 L 256 352" />
-    <path d="M 160 256 L 352 256" />
-    <path d="M 160 220 L 160 352" />
-    <path d="M 352 220 L 352 352" />
-  </g>
-  <circle cx="256" cy="256" r="22" fill="#ffffff" />
-</svg>
-</file>
 
 <file path="public/file.svg">
 <svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
@@ -227,6 +193,72 @@ export default function AdminPage() {
     >
       <AdminContent />
     </Suspense>
+  );
+}
+</file>
+
+<file path="src/app/icon-192/route.tsx">
+import { ImageResponse } from 'next/og';
+
+export async function GET() {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#1E40AF',
+          borderRadius: 42,
+          color: '#FFFFFF',
+          fontWeight: 900,
+          fontSize: 104,
+          letterSpacing: '-2px',
+          fontFamily: 'sans-serif',
+        }}
+      >
+        AA
+      </div>
+    ),
+    {
+      width: 192,
+      height: 192,
+    }
+  );
+}
+</file>
+
+<file path="src/app/icon-512/route.tsx">
+import { ImageResponse } from 'next/og';
+
+export async function GET() {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#1E40AF',
+          borderRadius: 112,
+          color: '#FFFFFF',
+          fontWeight: 900,
+          fontSize: 270,
+          letterSpacing: '-6px',
+          fontFamily: 'sans-serif',
+        }}
+      >
+        AA
+      </div>
+    ),
+    {
+      width: 512,
+      height: 512,
+    }
   );
 }
 </file>
@@ -2478,195 +2510,6 @@ export function ImageLightbox({ isOpen, onClose, imageUrl, title }: ImageLightbo
 }
 </file>
 
-<file path="src/components/InstallAppBanner.tsx">
-'use client';
-
-import React, { useEffect, useState, useSyncExternalStore } from 'react';
-import Image from 'next/image';
-import { Share, PlusSquare, X, Download } from 'lucide-react';
-import { useApp } from '@/context/AppContext';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
-}
-
-const PWA_DISMISSED_KEY = 'teamhub_pwa_dismissed';
-const PWA_EVENT = 'teamhub_pwa_event';
-
-function notifyPwaChange() {
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event(PWA_EVENT));
-}
-
-function subscribePwa(callback: () => void) {
-  if (typeof window === 'undefined') return () => {};
-  window.addEventListener('storage', callback);
-  window.addEventListener(PWA_EVENT, callback);
-  return () => {
-    window.removeEventListener('storage', callback);
-    window.removeEventListener(PWA_EVENT, callback);
-  };
-}
-
-function getDismissedSnapshot(): boolean {
-  try {
-    return localStorage.getItem(PWA_DISMISSED_KEY) === 'true';
-  } catch {
-    return false;
-  }
-}
-
-function getStandaloneSnapshot(): boolean {
-  if (typeof window === 'undefined') return true;
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    Boolean((navigator as unknown as { standalone?: boolean }).standalone)
-  );
-}
-
-function getIsIosSnapshot(): boolean {
-  if (typeof window === 'undefined') return false;
-  return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-}
-
-export function InstallAppBanner() {
-  const { t, isHydrated } = useApp();
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-
-  const isDismissed = useSyncExternalStore(subscribePwa, getDismissedSnapshot, () => true);
-  const isStandalone = useSyncExternalStore(subscribePwa, getStandaloneSnapshot, () => true);
-  const isIOS = useSyncExternalStore(subscribePwa, getIsIosSnapshot, () => false);
-
-  useEffect(() => {
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener('beforeinstallprompt', onPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
-  }, []);
-
-  const handleDismiss = () => {
-    try {
-      localStorage.setItem(PWA_DISMISSED_KEY, 'true');
-      notifyPwaChange();
-    } catch (err) {
-      console.warn('[InstallAppBanner] Persist failed:', err);
-    }
-  };
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    try {
-      await deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === 'accepted') handleDismiss();
-    } catch (err) {
-      console.error('[InstallAppBanner] Prompt error:', err);
-    } finally {
-      setDeferredPrompt(null);
-    }
-  };
-
-  if (!isHydrated || isDismissed || isStandalone || (!isIOS && !deferredPrompt)) {
-    return null;
-  }
-
-  return (
-    <aside
-      aria-label="Install App"
-      className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-4 duration-300"
-    >
-      <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 p-4 shadow-2xl backdrop-blur-md">
-        <button
-          type="button"
-          onClick={handleDismiss}
-          aria-label={t('close')}
-          className="absolute top-3 right-3 p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="flex items-start gap-3.5 pr-6">
-          <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-zinc-900 border border-zinc-700/50">
-            <Image
-              src="/icons/icon.svg"
-              alt="Team Hub"
-              width={48}
-              height={48}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
-              {t('install_app')}
-            </h3>
-            <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              {t('pwa_banner_desc')}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-3.5 pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
-          {isIOS ? (
-            <div className="space-y-1.5 text-xs text-zinc-700 dark:text-zinc-300">
-              <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-800 dark:text-zinc-200">
-                  1
-                </span>
-                <span className="flex items-center gap-1 font-medium">
-                  {t('pwa_ios_share_step')}
-                  <Share className="w-3.5 h-3.5 text-blue-500 inline-block" />
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-800 dark:text-zinc-200">
-                  2
-                </span>
-                <span className="flex items-center gap-1 font-medium">
-                  {t('pwa_ios_add_step')}
-                  <PlusSquare className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400 inline-block" />
-                </span>
-              </div>
-            </div>
-          ) : deferredPrompt ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleInstallClick}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 px-4 py-2 text-xs font-semibold shadow hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
-              >
-                <Download className="w-3.5 h-3.5" />
-                {t('add_to_home_screen')}
-              </button>
-              <button
-                type="button"
-                onClick={handleDismiss}
-                className="px-3 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors"
-              >
-                {t('dismiss')}
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between text-xs text-zinc-600 dark:text-zinc-400">
-              <span className="font-medium">{t('add_to_home_screen')}</span>
-              <button
-                type="button"
-                onClick={handleDismiss}
-                className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
-              >
-                {t('dismiss')}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </aside>
-  );
-}
-</file>
-
 <file path="src/components/QRCodeModal.tsx">
 'use client';
 
@@ -3229,6 +3072,13 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 }
 </file>
 
+<file path="public/icons/icon.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#1E40AF"/>
+  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="240" fill="#FFFFFF" letter-spacing="-6">AA</text>
+</svg>
+</file>
+
 <file path="src/app/globals.css">
 @import "tailwindcss";
 
@@ -3273,48 +3123,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
-}
-</file>
-
-<file path="src/app/manifest.ts">
-import type { MetadataRoute } from 'next';
-
-export default function manifest(): MetadataRoute.Manifest {
-  return {
-    name: 'Team Hub',
-    short_name: 'TeamHub',
-    description: 'Team resource portal, daily tools, and training hub',
-    start_url: '/',
-    display: 'standalone',
-    background_color: '#09090b',
-    theme_color: '#1E40AF',
-    orientation: 'portrait-primary',
-    scope: '/',
-    icons: [
-      {
-        src: '/icon',
-        sizes: '32x32',
-        type: 'image/png',
-      },
-      {
-        src: '/apple-icon',
-        sizes: '180x180',
-        type: 'image/png',
-      },
-      {
-        src: '/icons/icon-192.png',
-        sizes: '192x192',
-        type: 'image/png',
-        purpose: 'maskable',
-      },
-      {
-        src: '/icons/icon-512.png',
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'any',
-      },
-    ],
-  };
 }
 </file>
 
@@ -4776,6 +4584,187 @@ export function TabSectionsTools({
 }
 </file>
 
+<file path="src/components/InstallAppBanner.tsx">
+'use client';
+
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import { Share, PlusSquare, X, Download } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { AALogo } from '@/components/AALogo';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
+const PWA_DISMISSED_KEY = 'teamhub_pwa_dismissed';
+const PWA_EVENT = 'teamhub_pwa_event';
+
+function notifyPwaChange() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(PWA_EVENT));
+}
+
+function subscribePwa(callback: () => void) {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener('storage', callback);
+  window.addEventListener(PWA_EVENT, callback);
+  return () => {
+    window.removeEventListener('storage', callback);
+    window.removeEventListener(PWA_EVENT, callback);
+  };
+}
+
+function getDismissedSnapshot(): boolean {
+  try {
+    return localStorage.getItem(PWA_DISMISSED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function getStandaloneSnapshot(): boolean {
+  if (typeof window === 'undefined') return true;
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    Boolean((navigator as unknown as { standalone?: boolean }).standalone)
+  );
+}
+
+function getIsIosSnapshot(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+}
+
+export function InstallAppBanner() {
+  const { t, isHydrated } = useApp();
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  const isDismissed = useSyncExternalStore(subscribePwa, getDismissedSnapshot, () => true);
+  const isStandalone = useSyncExternalStore(subscribePwa, getStandaloneSnapshot, () => true);
+  const isIOS = useSyncExternalStore(subscribePwa, getIsIosSnapshot, () => false);
+
+  useEffect(() => {
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+  }, []);
+
+  const handleDismiss = () => {
+    try {
+      localStorage.setItem(PWA_DISMISSED_KEY, 'true');
+      notifyPwaChange();
+    } catch (err) {
+      console.warn('[InstallAppBanner] Persist failed:', err);
+    }
+  };
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    try {
+      await deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') handleDismiss();
+    } catch (err) {
+      console.error('[InstallAppBanner] Prompt error:', err);
+    } finally {
+      setDeferredPrompt(null);
+    }
+  };
+
+  if (!isHydrated || isDismissed || isStandalone || (!isIOS && !deferredPrompt)) {
+    return null;
+  }
+
+  return (
+    <aside
+      aria-label="Install App"
+      className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-4 duration-300"
+    >
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 p-4 shadow-2xl backdrop-blur-md">
+        <button
+          type="button"
+          onClick={handleDismiss}
+          aria-label={t('close')}
+          className="absolute top-3 right-3 p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-start gap-3.5 pr-6">
+          <AALogo size="lg" />
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
+              {t('install_app')}
+            </h3>
+            <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              {t('pwa_banner_desc')}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-3.5 pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
+          {isIOS ? (
+            <div className="space-y-1.5 text-xs text-zinc-700 dark:text-zinc-300">
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-800 dark:text-zinc-200">
+                  1
+                </span>
+                <span className="flex items-center gap-1 font-medium">
+                  {t('pwa_ios_share_step')}
+                  <Share className="w-3.5 h-3.5 text-blue-500 inline-block" />
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-800 dark:text-zinc-200">
+                  2
+                </span>
+                <span className="flex items-center gap-1 font-medium">
+                  {t('pwa_ios_add_step')}
+                  <PlusSquare className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400 inline-block" />
+                </span>
+              </div>
+            </div>
+          ) : deferredPrompt ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleInstallClick}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 px-4 py-2 text-xs font-semibold shadow hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {t('add_to_home_screen')}
+              </button>
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="px-3 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors"
+              >
+                {t('dismiss')}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between text-xs text-zinc-600 dark:text-zinc-400">
+              <span className="font-medium">{t('add_to_home_screen')}</span>
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
+              >
+                {t('dismiss')}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
+</file>
+
 <file path="src/components/SectionControls.tsx">
 'use client';
 
@@ -5030,132 +5019,6 @@ export function SectionControls({
           </button>
         </div>
       )}
-    </div>
-  );
-}
-</file>
-
-<file path="src/components/ShareAppTab.tsx">
-'use client';
-
-import React, { useState, useSyncExternalStore } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { Share2, Copy, Check, Smartphone } from 'lucide-react';
-import { useApp } from '@/context/AppContext';
-
-export function ShareAppTab() {
-  const { t } = useApp();
-  const [copied, setCopied] = useState(false);
-
-  const appUrl = useSyncExternalStore(
-    () => () => {},
-    () => (typeof window !== 'undefined' ? window.location.origin : 'https://teamhub.app'),
-    () => 'https://teamhub.app'
-  );
-
-  const appTitle = t('app_title', 'Team Hub');
-  const shareDesc = t('share_app_desc', 'Scan this QR code with a phone camera or share via WhatsApp to onboard team members and prospects instantly.');
-
-  const whatsappMessage = `${appTitle} - Super App\n\n${shareDesc}\n\n👉 ${appUrl}`;
-
-  const handleWhatsAppShare = () => {
-    window.location.href = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
-  };
-
-  const handleCopyLink = async () => {
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(appUrl);
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = appUrl;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.warn('Copy error', err);
-    }
-  };
-
-  return (
-    <div className="w-full space-y-6 px-4 py-4 animate-in fade-in duration-200">
-      {/* Title */}
-      <div className="text-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 font-black text-white shadow-md mb-2">
-          <span className="text-xl tracking-tighter">TH</span>
-        </div>
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
-          {t('share_app_title', 'Share Team Hub')}
-        </h2>
-        <p className="mt-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto leading-relaxed">
-          {shareDesc}
-        </p>
-      </div>
-
-      {/* Full-Screen / Prominent QR Code Card */}
-      <div className="mx-auto max-w-sm overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 flex flex-col items-center">
-        <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-6 shadow-inner border border-zinc-200 w-full max-w-[270px]">
-          <QRCodeSVG
-            value={appUrl}
-            size={230}
-            level="Q"
-            marginSize={1}
-            className="h-auto w-full max-w-[230px]"
-          />
-          <p className="mt-3 text-center text-[11px] font-semibold text-zinc-500">
-            {t('scan_to_view', 'Scan with camera or phone to view')}
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-6 w-full space-y-2.5">
-          {/* WhatsApp Share Button */}
-          <button
-            type="button"
-            onClick={handleWhatsAppShare}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-4 text-sm font-bold shadow-md transition-all active:scale-98"
-          >
-            <Share2 className="h-4 w-4" />
-            <span>{t('btn_whatsapp', 'Share via WhatsApp')}</span>
-          </button>
-
-          {/* Copy Link Button */}
-          <button
-            type="button"
-            onClick={handleCopyLink}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 py-3.5 px-4 text-sm font-bold transition-all active:scale-98"
-          >
-            {copied ? (
-              <>
-                <Check className="h-4 w-4 text-emerald-500" />
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                  {t('btn_copied', 'Copied!')}
-                </span>
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4" />
-                <span>{t('btn_copy', 'Copy App Link')}</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Onboarding Tip Card */}
-      <div className="mx-auto max-w-sm rounded-2xl bg-amber-50 dark:bg-amber-950/40 p-4 border border-amber-200 dark:border-amber-900/50 flex items-start gap-3">
-        <div className="rounded-xl bg-amber-500 p-2 text-white flex-shrink-0">
-          <Smartphone className="h-4 w-4" />
-        </div>
-        <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
-          <p className="font-bold mb-0.5">{t('add_to_home_screen', 'Instant Mobile App')}</p>
-          <p>{t('pwa_banner_desc', 'Team members can install this app directly onto their phone home screens without the App Store.')}</p>
-        </div>
-      </div>
     </div>
   );
 }
@@ -5912,109 +5775,45 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 </file>
 
-<file path="src/app/layout.tsx">
-export const instant = false;
+<file path="src/app/manifest.ts">
+import type { MetadataRoute } from 'next';
 
-import type { Metadata, Viewport } from "next";
-import { connection } from "next/server";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { AppProvider } from "@/context/AppContext";
-import { InstallAppBanner } from "@/components/InstallAppBanner";
-import { supabase, supabaseAdmin } from "@/lib/supabase";
-import type { UiDictionary } from "@/types/app";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
-  ],
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  viewportFit: "cover",
-};
-
-export const metadata: Metadata = {
-  title: "Team Hub - Super App",
-  description: "Team resource portal, daily tools, and training hub",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Team Hub",
-  },
-  formatDetection: {
-    telephone: false,
-  },
-  icons: {
-    icon: [
-      { url: "/icons/icon.svg", type: "image/svg+xml" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'AA Team Hub',
+    short_name: 'AA Hub',
+    description: 'Team resource portal, daily tools, and training hub',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#09090b',
+    theme_color: '#1E40AF',
+    orientation: 'portrait-primary',
+    scope: '/',
+    icons: [
+      {
+        src: '/icon',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+      {
+        src: '/apple-icon',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+      {
+        src: '/icon-192',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/icon-512',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-  },
-};
-
-async function getUiDictionary(): Promise<UiDictionary[]> {
-  await connection();
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")
-  ) {
-    return [];
-  }
-  try {
-    const client = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : supabase;
-    const { data, error } = await client.from("ui_dictionary").select("*");
-    if (!error && data && data.length > 0) {
-      return data as UiDictionary[];
-    }
-  } catch {
-    // Graceful fallback to default dictionary when Supabase is unconfigured or offline
-  }
-  return [];
-}
-
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const initialDictionary = await getUiDictionary();
-
-  return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col font-sans bg-background text-foreground tracking-tight selection:bg-zinc-800 selection:text-white dark:selection:bg-zinc-200 dark:selection:text-black">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AppProvider initialDictionary={initialDictionary}>
-            {children}
-            <InstallAppBanner />
-          </AppProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+  };
 }
 </file>
 
@@ -6078,257 +5877,6 @@ export default async function Home() {
       initialTools={tools}
       initialCalendar={calendar}
     />
-  );
-}
-</file>
-
-<file path="src/components/admin/AdminDashboard.tsx">
-'use client';
-
-import React, { useState } from 'react';
-import {
-  FolderKanban,
-  Calendar,
-  Languages,
-  KeyRound,
-  CheckCircle2,
-  AlertCircle,
-  X,
-  Check,
-  Bell,
-} from 'lucide-react';
-import { AdminTopBar } from './AdminTopBar';
-import { TabSectionsTools } from './TabSectionsTools';
-import { TabCalendar } from './TabCalendar';
-import { TabDictionary } from './TabDictionary';
-import { TabAccessPins } from './TabAccessPins';
-import { logoutPinAction, updateCalendarAction } from '@/app/actions/adminActions';
-import type { Section, Tool, TeamCalendar, UiDictionary, AccessPin, AdminSession } from '@/types/app';
-
-export interface AdminDashboardProps {
-  session: AdminSession;
-  initialSections: Section[];
-  initialTools: Tool[];
-  initialCalendar: TeamCalendar;
-  initialDictionary: UiDictionary[];
-  initialPins?: AccessPin[];
-  onLogoutSuccess: () => void;
-}
-
-export type AdminTab = 'sections_tools' | 'calendar' | 'dictionary' | 'pins';
-
-export function AdminDashboard({
-  session,
-  initialSections,
-  initialTools,
-  initialCalendar,
-  initialDictionary,
-  initialPins = [],
-  onLogoutSuccess,
-}: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<AdminTab>('sections_tools');
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  // Global state across dashboard tabs
-  const [sections, setSections] = useState<Section[]>(initialSections);
-  const [tools, setTools] = useState<Tool[]>(initialTools);
-  const [calendar, setCalendar] = useState<TeamCalendar>(initialCalendar);
-  const [dictionary, setDictionary] = useState<UiDictionary[]>(initialDictionary);
-  const [pins, setPins] = useState<AccessPin[]>(initialPins);
-
-  // Notification Toast State
-  const [toast, setToast] = useState<{ message: string; isError?: boolean } | null>(null);
-
-  const notify = (message: string, isError = false) => {
-    setToast({ message, isError });
-    setTimeout(() => {
-      setToast((curr) => (curr?.message === message ? null : curr));
-    }, 3500);
-  };
-
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      await logoutPinAction();
-      onLogoutSuccess();
-    } catch {
-      onLogoutSuccess();
-    } finally {
-      setLoggingOut(false);
-    }
-  };
-
-  // Month Review prompt check
-  const now = new Date();
-  const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const needsMonthReview = calendar?.last_reviewed_month !== currentYearMonth;
-  const [confirmingReview, setConfirmingReview] = useState(false);
-
-  const handleConfirmMonthReview = async () => {
-    setConfirmingReview(true);
-    const updated: TeamCalendar = {
-      ...calendar,
-      last_reviewed_month: currentYearMonth,
-    };
-    const res = await updateCalendarAction(updated);
-    setConfirmingReview(false);
-    if (res.success && res.data) {
-      setCalendar(res.data);
-      notify(`Month schedule confirmed for ${currentYearMonth}!`);
-    } else {
-      setCalendar(updated);
-      notify(`Month schedule confirmed for ${currentYearMonth}!`);
-    }
-  };
-
-  // Role-based visible tabs definition
-  const tabs: { id: AdminTab; label: string; icon: React.ReactNode; allowedRoles: string[] }[] = [
-    {
-      id: 'sections_tools',
-      label: 'Sections & Tools',
-      icon: <FolderKanban className="w-4 h-4 text-amber-500" />,
-      allowedRoles: ['editor', 'admin', 'superadmin'],
-    },
-    {
-      id: 'calendar',
-      label: 'Monthly Calendar',
-      icon: <Calendar className="w-4 h-4 text-blue-500" />,
-      allowedRoles: ['editor', 'admin', 'superadmin'],
-    },
-    {
-      id: 'dictionary',
-      label: 'UI Text & Translations',
-      icon: <Languages className="w-4 h-4 text-emerald-500" />,
-      allowedRoles: ['admin', 'superadmin'],
-    },
-    {
-      id: 'pins',
-      label: 'PIN & Access Control',
-      icon: <KeyRound className="w-4 h-4 text-purple-500" />,
-      allowedRoles: ['superadmin'],
-    },
-  ];
-
-  const visibleTabs = tabs.filter((t) => t.allowedRoles.includes(session.role));
-
-  return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 transition-colors">
-      <AdminTopBar session={session} onLogout={handleLogout} loggingOut={loggingOut} />
-
-      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
-        {/* Monthly Review Prompt Banner */}
-        {needsMonthReview && (
-          <div className="rounded-3xl border border-amber-300 dark:border-amber-600/50 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="flex items-start gap-3.5">
-              <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex-shrink-0">
-                <Bell className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-50">
-                  🔔 New Month Schedule Review ({currentYearMonth})
-                </h4>
-                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
-                  Please review this month&apos;s meetings and schedule, add any blackout dates or special events, and click &apos;Confirm &amp; Save Month Schedule&apos;.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => setActiveTab('calendar')}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 transition-colors"
-              >
-                Review Tab
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmMonthReview}
-                disabled={confirmingReview}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-50"
-              >
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                <span>Confirm &amp; Save Month Schedule</span>
-              </button>
-            </div>
-          </div>
-        )}
-        {/* Navigation Tabs Bar */}
-        <div className="flex overflow-x-auto no-scrollbar rounded-2xl bg-white dark:bg-zinc-900 p-1.5 border border-zinc-200 dark:border-zinc-800 shadow-sm gap-1">
-          {visibleTabs.map((t) => {
-            const isActive = activeTab === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setActiveTab(t.id)}
-                className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap select-none ${
-                  isActive
-                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm scale-[1.01]'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60'
-                }`}
-              >
-                {t.icon}
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Tab View Panels */}
-        <div className="transition-all animate-in fade-in duration-200">
-          {activeTab === 'sections_tools' && (
-            <TabSectionsTools
-              sections={sections}
-              setSections={setSections}
-              tools={tools}
-              setTools={setTools}
-              onNotify={notify}
-            />
-          )}
-
-          {activeTab === 'calendar' && (
-            <TabCalendar calendar={calendar} setCalendar={setCalendar} onNotify={notify} />
-          )}
-
-          {activeTab === 'dictionary' && (
-            <TabDictionary
-              dictionary={dictionary}
-              setDictionary={setDictionary}
-              onNotify={notify}
-            />
-          )}
-
-          {activeTab === 'pins' && session.role === 'superadmin' && (
-            <TabAccessPins
-              pins={pins}
-              setPins={setPins}
-              currentSession={session}
-              onNotify={notify}
-            />
-          )}
-        </div>
-      </main>
-
-      {/* Floating Notification Toast */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-xl border border-zinc-700 dark:border-zinc-300 text-xs font-semibold animate-in slide-in-from-bottom-3 duration-200">
-          {toast.isError ? (
-            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-          ) : (
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-          )}
-          <span>{toast.message}</span>
-          <button
-            type="button"
-            onClick={() => setToast(null)}
-            className="ml-2 p-0.5 rounded-full hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-    </div>
   );
 }
 </file>
@@ -6930,6 +6478,131 @@ export function MainView({
         onSelectTab={setActiveTab}
         savedCount={savedToolIds.length}
       />
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/ShareAppTab.tsx">
+'use client';
+
+import React, { useState, useSyncExternalStore } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import { Share2, Copy, Check, Smartphone } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { AALogo } from '@/components/AALogo';
+
+export function ShareAppTab() {
+  const { t } = useApp();
+  const [copied, setCopied] = useState(false);
+
+  const appUrl = useSyncExternalStore(
+    () => () => {},
+    () => (typeof window !== 'undefined' ? window.location.origin : 'https://teamhub.app'),
+    () => 'https://teamhub.app'
+  );
+
+  const appTitle = t('app_title', 'Team Hub');
+  const shareDesc = t('share_app_desc', 'Scan this QR code with a phone camera or share via WhatsApp to onboard team members and prospects instantly.');
+
+  const whatsappMessage = `${appTitle} - Super App\n\n${shareDesc}\n\n👉 ${appUrl}`;
+
+  const handleWhatsAppShare = () => {
+    window.location.href = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(appUrl);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = appUrl;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.warn('Copy error', err);
+    }
+  };
+
+  return (
+    <div className="w-full space-y-6 px-4 py-4 animate-in fade-in duration-200">
+      {/* Title */}
+      <div className="text-center">
+        <AALogo size="lg" className="mx-auto mb-2" />
+        <h2 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+          {t('share_app_title', 'Share Team Hub')}
+        </h2>
+        <p className="mt-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto leading-relaxed">
+          {shareDesc}
+        </p>
+      </div>
+
+      {/* Full-Screen / Prominent QR Code Card */}
+      <div className="mx-auto max-w-sm overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 flex flex-col items-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-6 shadow-inner border border-zinc-200 w-full max-w-[270px]">
+          <QRCodeSVG
+            value={appUrl}
+            size={230}
+            level="Q"
+            marginSize={1}
+            className="h-auto w-full max-w-[230px]"
+          />
+          <p className="mt-3 text-center text-[11px] font-semibold text-zinc-500">
+            {t('scan_to_view', 'Scan with camera or phone to view')}
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="mt-6 w-full space-y-2.5">
+          {/* WhatsApp Share Button */}
+          <button
+            type="button"
+            onClick={handleWhatsAppShare}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-4 text-sm font-bold shadow-md transition-all active:scale-98"
+          >
+            <Share2 className="h-4 w-4" />
+            <span>{t('btn_whatsapp', 'Share via WhatsApp')}</span>
+          </button>
+
+          {/* Copy Link Button */}
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 py-3.5 px-4 text-sm font-bold transition-all active:scale-98"
+          >
+            {copied ? (
+              <>
+                <Check className="h-4 w-4 text-emerald-500" />
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                  {t('btn_copied', 'Copied!')}
+                </span>
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" />
+                <span>{t('btn_copy', 'Copy App Link')}</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Onboarding Tip Card */}
+      <div className="mx-auto max-w-sm rounded-2xl bg-amber-50 dark:bg-amber-950/40 p-4 border border-amber-200 dark:border-amber-900/50 flex items-start gap-3">
+        <div className="rounded-xl bg-amber-500 p-2 text-white flex-shrink-0">
+          <Smartphone className="h-4 w-4" />
+        </div>
+        <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+          <p className="font-bold mb-0.5">{t('add_to_home_screen', 'Instant Mobile App')}</p>
+          <p>{t('pwa_banner_desc', 'Team members can install this app directly onto their phone home screens without the App Store.')}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -8310,1710 +7983,297 @@ export interface AdminDashboardData {
 }
 </file>
 
-<file path="src/app/actions/adminActions.ts">
-'use server';
+<file path="src/app/layout.tsx">
+export const instant = false;
 
-import { cookies } from 'next/headers';
-import { revalidatePath } from 'next/cache';
-import { supabaseAdmin, getSupabaseAdminClient } from '@/lib/supabase';
-import {
-  DEFAULT_SECTIONS,
-  DEFAULT_TOOLS,
-  DEFAULT_CALENDAR,
-} from '@/lib/mockData';
-import { DEFAULT_UI_DICTIONARY } from '@/lib/dictionary';
-import { pruneCalendarData, unpackCalendar } from '@/lib/calendarGenerator';
-import type {
-  AccessPin,
-  AccessPinRole,
-  Database,
-  LanguageCode,
-  Section,
-  TeamCalendar,
-  Tool,
-  UiDictionary,
-  AdminSession,
-  AdminDashboardData,
-  ActionResponse,
-} from '@/types/app';
-import { PIN_SESSION_COOKIE } from '@/types/app';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { AppProvider } from "@/context/AppContext";
+import { InstallAppBanner } from "@/components/InstallAppBanner";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
+import type { UiDictionary } from "@/types/app";
 
-const isValidUuid = (str?: string) =>
-  Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
 
-function getAdminClient(): SupabaseClient<Database> {
-  try {
-    return getSupabaseAdminClient();
-  } catch {
-    return supabaseAdmin;
-  }
-}
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
-function safeRevalidate(paths: string[] = ['/', '/admin']) {
-  try {
-    for (const p of paths) {
-      revalidatePath(p);
-    }
-  } catch {
-    // Revalidation ignored in testing or non-standard environments
-  }
-}
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+};
 
-async function requireSession(allowedRoles?: AccessPinRole[]): Promise<AdminSession> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get(PIN_SESSION_COOKIE);
+export const metadata: Metadata = {
+  title: "AA Team Hub - Super App",
+  description: "Team resource portal, daily tools, and training hub",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "AA Hub",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icon", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+  },
+};
 
-  if (!sessionCookie?.value) {
-    throw new Error('Authentication required: No active PIN session found.');
-  }
-
-  let session: AdminSession;
-  try {
-    session = JSON.parse(sessionCookie.value);
-  } catch {
-    cookieStore.delete(PIN_SESSION_COOKIE);
-    throw new Error('Invalid session format. Please log in again.');
-  }
-
+async function getUiDictionary(): Promise<UiDictionary[]> {
+  await connection();
   if (
-    !session?.id ||
-    !session?.role ||
-    !['superadmin', 'admin', 'editor'].includes(session.role)
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")
   ) {
-    cookieStore.delete(PIN_SESSION_COOKIE);
-    throw new Error('Corrupt session data. Please log in again.');
+    return [];
   }
-
-  // Master Super Admin session bypasses DB query check
-  if (session.id === 'master-superadmin') {
-    session.role = 'superadmin';
-    session.label = session.label || 'Master Super Admin';
-    return session;
-  }
-
-  const client = getAdminClient();
-  const { data: pinRow, error } = await client
-    .from('access_pins')
-    .select('id, label, role, is_active')
-    .eq('id', session.id)
-    .maybeSingle();
-
-  if (error) {
-    console.warn('[requireSession] Database query error when verifying session:', error.message);
-  } else if (!pinRow || !pinRow.is_active) {
-    cookieStore.delete(PIN_SESSION_COOKIE);
-    throw new Error('Session has expired or PIN access has been deactivated.');
-  } else {
-    session.role = pinRow.role as AccessPinRole;
-    session.label = pinRow.label;
-  }
-
-  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(session.role)) {
-    throw new Error(
-      `Access denied: Role '${session.role}' is not authorized to perform this operation.`
-    );
-  }
-
-  return session;
-}
-// =============================================================================
-// 1. PIN AUTHENTICATION & SESSION MANAGEMENT
-// =============================================================================
-
-export async function verifyPinAction(pin: string): Promise<ActionResponse<AdminSession>> {
   try {
-    if (!pin || typeof pin !== 'string' || !pin.trim()) {
-      return { success: false, error: 'PIN is required' };
+    const client = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : supabase;
+    const { data, error } = await client.from("ui_dictionary").select("*");
+    if (!error && data && data.length > 0) {
+      return data as UiDictionary[];
     }
-
-    const trimmedPin = pin.trim();
-
-    // Guaranteed master fallback for Super Admin PIN '371983'
-    if (trimmedPin === '371983') {
-      const masterSession: AdminSession = {
-        id: 'master-superadmin',
-        label: 'Master Super Admin',
-        role: 'superadmin',
-      };
-
-      const cookieStore = await cookies();
-      cookieStore.set(PIN_SESSION_COOKIE, JSON.stringify(masterSession), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-
-      return {
-        success: true,
-        session: masterSession,
-        data: masterSession,
-      };
-    }
-
-    const client = getAdminClient();
-
-    const { data: pinRecord, error } = await client
-      .from('access_pins')
-      .select('id, label, pin_code, role, is_active')
-      .eq('pin_code', trimmedPin)
-      .eq('is_active', true)
-      .maybeSingle();
-
-    if (error) {
-      console.error('[verifyPinAction] Supabase query error:', error);
-      return { success: false, error: 'Authentication service error. Please try again.' };
-    }
-
-    if (!pinRecord) {
-      return { success: false, error: 'Invalid or inactive PIN' };
-    }
-
-    const validRoles: AccessPinRole[] = ['superadmin', 'admin', 'editor'];
-    if (!validRoles.includes(pinRecord.role as AccessPinRole)) {
-      return { success: false, error: 'Unauthorized role configured for this PIN' };
-    }
-
-    const sessionPayload: AdminSession = {
-      id: pinRecord.id,
-      label: pinRecord.label,
-      role: pinRecord.role as AccessPinRole,
-    };
-
-    const cookieStore = await cookies();
-    cookieStore.set(PIN_SESSION_COOKIE, JSON.stringify(sessionPayload), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    return {
-      success: true,
-      session: sessionPayload,
-      data: sessionPayload,
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Authentication failed';
-    return { success: false, error: message };
+  } catch {
+    // Graceful fallback to default dictionary when Supabase is unconfigured or offline
   }
+  return [];
 }
 
-export async function getSessionAction(): Promise<ActionResponse<AdminSession | null>> {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get(PIN_SESSION_COOKIE);
-
-    if (!sessionCookie?.value) {
-      return { success: true, session: null, data: null };
-    }
-
-    let session: AdminSession;
-    try {
-      session = JSON.parse(sessionCookie.value);
-    } catch {
-      cookieStore.delete(PIN_SESSION_COOKIE);
-      return { success: true, session: null, data: null };
-    }
-
-    if (
-      !session?.id ||
-      !session?.role ||
-      !['superadmin', 'admin', 'editor'].includes(session.role)
-    ) {
-      cookieStore.delete(PIN_SESSION_COOKIE);
-      return { success: true, session: null, data: null };
-    }
-
-    if (session.id === 'master-superadmin') {
-      return { success: true, session, data: session };
-    }
-
-    const client = getAdminClient();
-    const { data: pinRecord, error } = await client
-      .from('access_pins')
-      .select('id, label, role, is_active')
-      .eq('id', session.id)
-      .maybeSingle();
-
-    if (error) {
-      console.warn('[getSessionAction] DB check warning:', error.message);
-      return { success: true, session, data: session };
-    }
-
-    if (!pinRecord || !pinRecord.is_active) {
-      cookieStore.delete(PIN_SESSION_COOKIE);
-      return {
-        success: false,
-        session: null,
-        data: null,
-        error: 'Session expired or PIN deactivated',
-      };
-    }
-
-    const verifiedSession: AdminSession = {
-      id: pinRecord.id,
-      label: pinRecord.label,
-      role: pinRecord.role as AccessPinRole,
-    };
-
-    return {
-      success: true,
-      session: verifiedSession,
-      data: verifiedSession,
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to retrieve session';
-    return { success: false, error: message, session: null, data: null };
-  }
-}
-
-export async function logoutPinAction(): Promise<ActionResponse<void>> {
-  try {
-    const cookieStore = await cookies();
-    cookieStore.delete(PIN_SESSION_COOKIE);
-    return { success: true, message: 'Logged out successfully' };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Logout failed';
-    return { success: false, error: message };
-  }
-}
-
-export async function getAdminDashboardDataAction(): Promise<ActionResponse<AdminDashboardData>> {
-  try {
-    const session = await requireSession(['editor', 'admin', 'superadmin']);
-    const client = getAdminClient();
-
-    const [secRes, toolRes, calRes, dictRes] = await Promise.all([
-      client.from('sections').select('*').order('sort_order', { ascending: true }),
-      client.from('tools').select('*').order('sort_order', { ascending: true }),
-      client.from('team_calendar').select('*').limit(1),
-      client.from('ui_dictionary').select('*').order('key', { ascending: true }),
-    ]);
-
-    const sections: Section[] =
-      secRes.data && secRes.data.length > 0 ? (secRes.data as Section[]) : DEFAULT_SECTIONS;
-    const tools: Tool[] =
-      toolRes.data && toolRes.data.length > 0 ? (toolRes.data as Tool[]) : DEFAULT_TOOLS;
-    const calendar: TeamCalendar =
-      calRes.data && calRes.data.length > 0
-        ? unpackCalendar(calRes.data[0] as TeamCalendar)
-        : DEFAULT_CALENDAR;
-
-    const dictMap: Record<string, UiDictionary> = { ...DEFAULT_UI_DICTIONARY };
-    if (dictRes.data && dictRes.data.length > 0) {
-      for (const d of dictRes.data as UiDictionary[]) {
-        dictMap[d.key] = d;
-      }
-    }
-    const dictionary: UiDictionary[] = Object.values(dictMap);
-
-    let pins: AccessPin[] | undefined;
-    if (session.role === 'superadmin') {
-      const pinsRes = await client
-        .from('access_pins')
-        .select('*')
-        .order('created_at', { ascending: false });
-      pins = !pinsRes.error && pinsRes.data ? (pinsRes.data as AccessPin[]) : [];
-    }
-
-    return {
-      success: true,
-      data: {
-        session,
-        sections,
-        tools,
-        calendar,
-        dictionary,
-        pins,
-      },
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to retrieve admin data';
-    return { success: false, error: message };
-  }
-}
-
-// =============================================================================
-// 2. ROLE-GUARDED ACTIONS: EDITOR, ADMIN, SUPERADMIN
-// =============================================================================
-
-export async function upsertSectionAction(
-  section: Partial<Section>
-): Promise<ActionResponse<Section>> {
-  try {
-    await requireSession(['editor', 'admin', 'superadmin']);
-    const client = getAdminClient();
-
-    const enTitle = section.title?.en?.trim() || '';
-    if (!enTitle) {
-      return { success: false, error: 'Section title (EN) is required' };
-    }
-
-    const generatedSlug =
-      section.slug?.trim() ||
-      enTitle
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '') ||
-      `section-${Date.now()}`;
-
-    const payload = {
-      slug: generatedSlug,
-      icon_name: section.icon_name || 'Folder',
-      sort_order: typeof section.sort_order === 'number' ? section.sort_order : 0,
-      is_visible: section.is_visible !== false,
-      title: {
-        en: enTitle,
-        bm: section.title?.bm?.trim() || enTitle,
-        cn: section.title?.cn?.trim() || enTitle,
-        ta: section.title?.ta?.trim() || enTitle,
-      },
-      description: {
-        en: section.description?.en?.trim() || '',
-        bm: section.description?.bm?.trim() || section.description?.en?.trim() || '',
-        cn: section.description?.cn?.trim() || section.description?.en?.trim() || '',
-        ta: section.description?.ta?.trim() || section.description?.en?.trim() || '',
-      },
-    };
-
-    let result;
-    if (isValidUuid(section.id)) {
-      result = await client
-        .from('sections')
-        .update(payload)
-        .eq('id', section.id!)
-        .select()
-        .single();
-    } else {
-      result = await client
-        .from('sections')
-        .insert(payload)
-        .select()
-        .single();
-    }
-
-    if (result.error) {
-      throw new Error(result.error.message);
-    }
-
-    safeRevalidate();
-    return { success: true, data: result.data as Section };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to save section';
-    return { success: false, error: message };
-  }
-}
-
-export async function deleteSectionAction(id: string): Promise<ActionResponse<void>> {
-  try {
-    await requireSession(['editor', 'admin', 'superadmin']);
-    if (!id) return { success: false, error: 'Section ID is required' };
-
-    const client = getAdminClient();
-
-    // Remove associated tools
-    await client.from('tools').delete().eq('section_id', id);
-
-    const { error } = await client.from('sections').delete().eq('id', id);
-    if (error) throw new Error(error.message);
-
-    safeRevalidate();
-    return { success: true, message: 'Section deleted successfully' };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to delete section';
-    return { success: false, error: message };
-  }
-}
-
-export async function reorderSectionsAction(
-  items: { id: string; sort_order: number }[] | string[]
-): Promise<ActionResponse<void>> {
-  try {
-    await requireSession(['editor', 'admin', 'superadmin']);
-    if (!Array.isArray(items) || items.length === 0) {
-      return { success: false, error: 'No sections provided to reorder' };
-    }
-
-    const client = getAdminClient();
-    const normalized: { id: string; sort_order: number }[] = items.map((item, index) => {
-      if (typeof item === 'string') {
-        return { id: item, sort_order: index };
-      }
-      return { id: item.id, sort_order: item.sort_order ?? index };
-    });
-
-    const updates = normalized.map((item) =>
-      client.from('sections').update({ sort_order: item.sort_order }).eq('id', item.id)
-    );
-
-    const results = await Promise.all(updates);
-    const firstError = results.find((r) => r.error);
-    if (firstError?.error) {
-      throw new Error(firstError.error.message);
-    }
-
-    safeRevalidate();
-    return { success: true, message: 'Sections reordered successfully' };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to reorder sections';
-    return { success: false, error: message };
-  }
-}
-
-export async function reorderToolsAction(
-  items: { id: string; sort_order: number }[] | string[]
-): Promise<ActionResponse<void>> {
-  try {
-    await requireSession(['editor', 'admin', 'superadmin']);
-    if (!Array.isArray(items) || items.length === 0) {
-      return { success: false, error: 'No tools provided to reorder' };
-    }
-
-    const client = getAdminClient();
-    const normalized: { id: string; sort_order: number }[] = items.map((item, index) => {
-      if (typeof item === 'string') {
-        return { id: item, sort_order: index };
-      }
-      return { id: item.id, sort_order: item.sort_order ?? index };
-    });
-
-    const updates = normalized.map((item) =>
-      client.from('tools').update({ sort_order: item.sort_order }).eq('id', item.id)
-    );
-
-    const results = await Promise.all(updates);
-    const firstError = results.find((r) => r.error);
-    if (firstError?.error) {
-      throw new Error(firstError.error.message);
-    }
-
-    safeRevalidate();
-    return { success: true, message: 'Tools reordered successfully' };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to reorder tools';
-    return { success: false, error: message };
-  }
-}
-
-export async function upsertToolAction(tool: Partial<Tool>): Promise<ActionResponse<Tool>> {
-  try {
-    await requireSession(['editor', 'admin', 'superadmin']);
-    const client = getAdminClient();
-
-    if (!tool.section_id) {
-      return { success: false, error: 'Section ID is required for a tool' };
-    }
-    const enTitle = tool.title?.en?.trim() || '';
-    if (!enTitle) {
-      return { success: false, error: 'Tool title (EN) is required' };
-    }
-
-    const enUrl = tool.url?.en?.trim() || '';
-    const enDesc = tool.description?.en?.trim() || '';
-
-    const validLangCodes: LanguageCode[] = ['en', 'bm', 'cn', 'ta'];
-    const filteredLangs = Array.isArray(tool.available_languages)
-      ? tool.available_languages.filter((l): l is LanguageCode =>
-          validLangCodes.includes(l as LanguageCode)
-        )
-      : [];
-    const safeLanguages: LanguageCode[] = filteredLangs.length > 0 ? filteredLangs : ['en'];
-
-    const payload = {
-      section_id: tool.section_id,
-      type: tool.type || 'link',
-      title: {
-        en: enTitle,
-        bm: tool.title?.bm?.trim() || enTitle,
-        cn: tool.title?.cn?.trim() || enTitle,
-        ta: tool.title?.ta?.trim() || enTitle,
-      },
-      description: {
-        en: enDesc,
-        bm: tool.description?.bm?.trim() || enDesc,
-        cn: tool.description?.cn?.trim() || enDesc,
-        ta: tool.description?.ta?.trim() || enDesc,
-      },
-      speaker_name: tool.speaker_name?.trim() || '',
-      duration: tool.duration?.trim() || '',
-      available_languages: safeLanguages,
-      topics: {
-        en: Array.isArray(tool.topics?.en) ? tool.topics.en : [],
-        bm: Array.isArray(tool.topics?.bm) ? tool.topics.bm : [],
-        cn: Array.isArray(tool.topics?.cn) ? tool.topics.cn : [],
-        ta: Array.isArray(tool.topics?.ta) ? tool.topics.ta : [],
-      },
-      url: {
-        en: enUrl,
-        bm: tool.url?.bm?.trim() || enUrl,
-        cn: tool.url?.cn?.trim() || enUrl,
-        ta: tool.url?.ta?.trim() || enUrl,
-      },
-      whatsapp_script: {
-        en: tool.whatsapp_script?.en?.trim() || '',
-        bm: tool.whatsapp_script?.bm?.trim() || tool.whatsapp_script?.en?.trim() || '',
-        cn: tool.whatsapp_script?.cn?.trim() || tool.whatsapp_script?.en?.trim() || '',
-        ta: tool.whatsapp_script?.ta?.trim() || tool.whatsapp_script?.en?.trim() || '',
-      },
-      thumbnail_url: tool.thumbnail_url?.trim() || '',
-      is_featured: Boolean(tool.is_featured),
-      sort_order: typeof tool.sort_order === 'number' ? tool.sort_order : 0,
-      is_visible: tool.is_visible !== false,
-    };
-
-    let result;
-    if (isValidUuid(tool.id)) {
-      result = await client
-        .from('tools')
-        .update(payload)
-        .eq('id', tool.id!)
-        .select()
-        .single();
-    } else {
-      result = await client
-        .from('tools')
-        .insert(payload)
-        .select()
-        .single();
-    }
-
-    if (result.error) {
-      throw new Error(result.error.message);
-    }
-
-    safeRevalidate();
-    return { success: true, data: result.data as Tool };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to save tool';
-    return { success: false, error: message };
-  }
-}
-
-export async function deleteToolAction(id: string): Promise<ActionResponse<void>> {
-  try {
-    await requireSession(['editor', 'admin', 'superadmin']);
-    if (!id) return { success: false, error: 'Tool ID is required' };
-
-    const client = getAdminClient();
-    const { error } = await client.from('tools').delete().eq('id', id);
-    if (error) throw new Error(error.message);
-
-    safeRevalidate();
-    return { success: true, message: 'Tool deleted successfully' };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to delete tool';
-    return { success: false, error: message };
-  }
-}
-
-export async function uploadMediaAction(formData: FormData): Promise<ActionResponse<{ url: string; path: string }>> {
-  try {
-    await requireSession(['editor', 'admin', 'superadmin']);
-
-    const file = (formData.get('file') || formData.get('media')) as File | null;
-    if (!file || typeof file === 'string' || file.size === 0) {
-      return { success: false, error: 'No valid file provided for upload' };
-    }
-
-    const client = getAdminClient();
-    const bucketName = 'media';
-
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const filePath = `uploads/${Date.now()}_${sanitizedFileName}`;
-
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const { error: uploadError } = await client.storage
-      .from(bucketName)
-      .upload(filePath, buffer, {
-        contentType: file.type || 'application/octet-stream',
-        upsert: true,
-      });
-
-    if (uploadError) {
-      throw new Error(`Upload failed: ${uploadError.message}`);
-    }
-
-    const { data: urlData } = client.storage.from(bucketName).getPublicUrl(filePath);
-
-    return {
-      success: true,
-      url: urlData.publicUrl,
-      path: filePath,
-      data: { url: urlData.publicUrl, path: filePath },
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Media upload failed';
-    return { success: false, error: message };
-  }
-}
-
-// =============================================================================
-// 3. ROLE-GUARDED ACTIONS: ADMIN AND SUPERADMIN ONLY
-// =============================================================================
-
-export async function updateCalendarAction(
-  calendarData: Partial<TeamCalendar>
-): Promise<ActionResponse<TeamCalendar>> {
-  try {
-    await requireSession(['editor', 'admin', 'superadmin']);
-    const client = getAdminClient();
-
-    // Auto-cleanup records older than 2 months prior
-    const cleanedCalendar = pruneCalendarData(calendarData);
-
-    const recurringRules = Array.isArray(cleanedCalendar.recurring_rules)
-      ? cleanedCalendar.recurring_rules
-      : [];
-    const exceptions = Array.isArray(cleanedCalendar.exceptions)
-      ? cleanedCalendar.exceptions
-      : [];
-    const blackoutDates = Array.isArray(cleanedCalendar.blackout_dates)
-      ? cleanedCalendar.blackout_dates
-      : [];
-    const baseEvents = Array.isArray(cleanedCalendar.events)
-      ? cleanedCalendar.events.filter((e) => e.id !== '_meta_calendar')
-      : [];
-
-    // Fallback meta marker in events JSONB so if table columns are not migrated, data is preserved!
-    const metaEvent = {
-      id: '_meta_calendar',
-      date: '9999-12-31',
-      time: '',
-      title: { en: '', bm: '', cn: '', ta: '' },
-      speaker: '',
-      location_or_link: '',
-      description: JSON.stringify({
-        recurring_rules: recurringRules,
-        exceptions,
-        blackout_dates: blackoutDates,
-        default_view: cleanedCalendar.default_view || 'dynamic',
-        last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
-      }),
-    };
-
-    const payload: Record<string, unknown> = {
-      month_label: {
-        en: cleanedCalendar.month_label?.en?.trim() || '',
-        bm: cleanedCalendar.month_label?.bm?.trim() || '',
-        cn: cleanedCalendar.month_label?.cn?.trim() || '',
-        ta: cleanedCalendar.month_label?.ta?.trim() || '',
-      },
-      image_url: {
-        en: cleanedCalendar.image_url?.en?.trim() || '',
-        bm: cleanedCalendar.image_url?.bm?.trim() || '',
-        cn: cleanedCalendar.image_url?.cn?.trim() || '',
-        ta: cleanedCalendar.image_url?.ta?.trim() || '',
-      },
-      events: [...baseEvents, metaEvent],
-      recurring_rules: recurringRules,
-      exceptions,
-      blackout_dates: blackoutDates,
-      default_view: cleanedCalendar.default_view || 'dynamic',
-      last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
-    };
-
-    let result;
-    const targetId = isValidUuid(cleanedCalendar.id) ? cleanedCalendar.id : undefined;
-
-    if (targetId) {
-      result = await (client.from('team_calendar') as any)
-        .update(payload)
-        .eq('id', targetId)
-        .select()
-        .single();
-    } else {
-      const { data: existing } = await client
-        .from('team_calendar')
-        .select('id')
-        .limit(1)
-        .maybeSingle();
-
-      if (existing?.id && isValidUuid(existing.id)) {
-        result = await (client.from('team_calendar') as any)
-          .update(payload)
-          .eq('id', existing.id)
-          .select()
-          .single();
-      } else {
-        result = await (client.from('team_calendar') as any)
-          .insert(payload)
-          .select()
-          .single();
-      }
-    }
-
-    if (result.error) {
-      // If postgres schema doesn't have the newly added json columns yet, fallback to base payload
-      const basePayload = {
-        month_label: payload.month_label,
-        image_url: payload.image_url,
-        events: payload.events,
-      };
-      const fallbackRes = targetId
-        ? await (client.from('team_calendar') as any).update(basePayload).eq('id', targetId).select().single()
-        : await (client.from('team_calendar') as any).insert(basePayload).select().single();
-
-      if (fallbackRes.error) {
-        throw new Error(fallbackRes.error.message);
-      }
-      safeRevalidate();
-      return {
-        success: true,
-        data: {
-          ...(fallbackRes.data as TeamCalendar),
-          events: baseEvents,
-          recurring_rules: recurringRules,
-          exceptions,
-          blackout_dates: blackoutDates,
-          default_view: cleanedCalendar.default_view || 'dynamic',
-          last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
-        },
-      };
-    }
-
-    safeRevalidate();
-    return {
-      success: true,
-      data: {
-        ...(result.data as TeamCalendar),
-        events: baseEvents,
-        recurring_rules: recurringRules,
-        exceptions,
-        blackout_dates: blackoutDates,
-        default_view: cleanedCalendar.default_view || 'dynamic',
-        last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
-      },
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to update calendar';
-    return { success: false, error: message };
-  }
-}
-
-export async function updateDictionaryAction(
-  entryOrEntries: UiDictionary | UiDictionary[]
-): Promise<ActionResponse<UiDictionary[]>> {
-  try {
-    await requireSession(['admin', 'superadmin']);
-    const client = getAdminClient();
-
-    const entries = Array.isArray(entryOrEntries) ? entryOrEntries : [entryOrEntries];
-    if (entries.length === 0) {
-      return { success: false, error: 'No dictionary entries provided' };
-    }
-
-    for (const item of entries) {
-      if (!item.key || !item.key.trim()) {
-        return { success: false, error: 'Dictionary key is required for every row' };
-      }
-    }
-
-    const rows = entries.map((e) => ({
-      key: e.key.trim(),
-      en: e.en ?? '',
-      bm: e.bm ?? '',
-      cn: e.cn ?? '',
-      ta: e.ta ?? '',
-    }));
-
-    const { data, error } = await client
-      .from('ui_dictionary')
-      .upsert(rows, { onConflict: 'key' })
-      .select();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    safeRevalidate();
-    return { success: true, data: data as UiDictionary[] };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to update dictionary';
-    return { success: false, error: message };
-  }
-}
-
-// =============================================================================
-// 4. ROLE-GUARDED ACTIONS: SUPERADMIN ONLY
-// =============================================================================
-
-export async function getPinsAction(): Promise<ActionResponse<AccessPin[]>> {
-  try {
-    await requireSession(['superadmin']);
-    const client = getAdminClient();
-
-    const { data, error } = await client
-      .from('access_pins')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true, data: (data || []) as AccessPin[] };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch PINs';
-    return { success: false, error: message };
-  }
-}
-
-export async function upsertPinAction(pinData: {
-  id?: string;
-  label: string;
-  pin_code: string;
-  role: AccessPinRole;
-  is_active?: boolean;
-}): Promise<ActionResponse<AccessPin>> {
-  try {
-    await requireSession(['superadmin']);
-
-    if (!pinData.label || !pinData.label.trim()) {
-      return { success: false, error: 'PIN label is required' };
-    }
-    if (!pinData.pin_code || !pinData.pin_code.trim()) {
-      return { success: false, error: 'PIN code is required' };
-    }
-    if (!['superadmin', 'admin', 'editor'].includes(pinData.role)) {
-      return { success: false, error: 'Invalid role specified' };
-    }
-
-    const client = getAdminClient();
-    const payload = {
-      label: pinData.label.trim(),
-      pin_code: pinData.pin_code.trim(),
-      role: pinData.role,
-      is_active: pinData.is_active !== false,
-    };
-
-    let result;
-    if (pinData.id) {
-      result = await client
-        .from('access_pins')
-        .update(payload)
-        .eq('id', pinData.id)
-        .select()
-        .single();
-    } else {
-      result = await client
-        .from('access_pins')
-        .insert(payload)
-        .select()
-        .single();
-    }
-
-    if (result.error) {
-      throw new Error(result.error.message);
-    }
-
-    return { success: true, data: result.data as AccessPin };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to save PIN';
-    return { success: false, error: message };
-  }
-}
-
-export async function deletePinAction(id: string): Promise<ActionResponse<void>> {
-  try {
-    const session = await requireSession(['superadmin']);
-
-    if (!id) {
-      return { success: false, error: 'PIN ID is required' };
-    }
-
-    if (session.id === id) {
-      return {
-        success: false,
-        error: 'Security restriction: You cannot delete your own currently active PIN session.',
-      };
-    }
-
-    const client = getAdminClient();
-    const { error } = await client.from('access_pins').delete().eq('id', id);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true, message: 'PIN deleted successfully' };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to delete PIN';
-    return { success: false, error: message };
-  }
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const initialDictionary = await getUiDictionary();
+
+  return (
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col font-sans bg-background text-foreground tracking-tight selection:bg-zinc-800 selection:text-white dark:selection:bg-zinc-200 dark:selection:text-black">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AppProvider initialDictionary={initialDictionary}>
+            {children}
+            <InstallAppBanner />
+          </AppProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
 }
 </file>
 
-<file path="src/components/admin/TabCalendar.tsx">
+<file path="src/components/admin/AdminDashboard.tsx">
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState } from 'react';
 import {
-  Calendar as CalendarIcon,
-  Upload,
-  Loader2,
-  Check,
-  Plus,
-  Trash2,
-  Edit,
-  Sparkles,
-  Ban,
-  Clock,
-  MapPin,
-  RotateCcw,
-  Bell,
-  ArrowRight,
+  FolderKanban,
+  Calendar,
+  Languages,
+  KeyRound,
+  CheckCircle2,
+  AlertCircle,
+  X,
 } from 'lucide-react';
-import { RecurringRuleModal } from './RecurringRuleModal';
-import { InstanceOverrideModal } from './InstanceOverrideModal';
-import { updateCalendarAction, uploadMediaAction } from '@/app/actions/adminActions';
-import type {
-  TeamCalendar,
-  CalendarEvent,
-  MeetingSeries,
-  MeetingException,
-  BlackoutDate,
-} from '@/types/app';
-import {
-  generateMonthSchedule,
-  type GeneratedScheduleEvent,
-} from '@/lib/calendarGenerator';
-import { useApp } from '@/context/AppContext';
+import { AdminTopBar } from './AdminTopBar';
+import { TabSectionsTools } from './TabSectionsTools';
+import { TabCalendar } from './TabCalendar';
+import { TabDictionary } from './TabDictionary';
+import { TabAccessPins } from './TabAccessPins';
+import { logoutPinAction } from '@/app/actions/adminActions';
+import type { Section, Tool, TeamCalendar, UiDictionary, AccessPin, AdminSession } from '@/types/app';
 
-interface TabCalendarProps {
-  calendar: TeamCalendar;
-  setCalendar: React.Dispatch<React.SetStateAction<TeamCalendar>>;
-  onNotify: (msg: string, isError?: boolean) => void;
+export interface AdminDashboardProps {
+  session: AdminSession;
+  initialSections: Section[];
+  initialTools: Tool[];
+  initialCalendar: TeamCalendar;
+  initialDictionary: UiDictionary[];
+  initialPins?: AccessPin[];
+  onLogoutSuccess: () => void;
 }
 
-export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProps) {
-  const { getLocalized } = useApp();
+export type AdminTab = 'sections_tools' | 'calendar' | 'dictionary' | 'pins';
 
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-  const currentYearMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-  const needsMonthReview = calendar.last_reviewed_month !== currentYearMonth;
+export function AdminDashboard({
+  session,
+  initialSections,
+  initialTools,
+  initialCalendar,
+  initialDictionary,
+  initialPins = [],
+  onLogoutSuccess,
+}: AdminDashboardProps) {
+  const [activeTab, setActiveTab] = useState<AdminTab>('sections_tools');
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const [activeSubTab, setActiveSubTab] = useState<'schedule' | 'recurring' | 'blackout' | 'flyer'>('schedule');
+  // Global state across dashboard tabs
+  const [sections, setSections] = useState<Section[]>(initialSections);
+  const [tools, setTools] = useState<Tool[]>(initialTools);
+  const [calendar, setCalendar] = useState<TeamCalendar>(initialCalendar);
+  const [dictionary, setDictionary] = useState<UiDictionary[]>(initialDictionary);
+  const [pins, setPins] = useState<AccessPin[]>(initialPins);
 
-  const [monthLabels, setMonthLabels] = useState(calendar.month_label || { en: '', bm: '', cn: '', ta: '' });
-  const [imageUrls, setImageUrls] = useState(calendar.image_url || { en: '', bm: '', cn: '', ta: '' });
-  const [defaultView, setDefaultView] = useState<'dynamic' | 'flyer'>(calendar.default_view || 'dynamic');
+  // Notification Toast State
+  const [toast, setToast] = useState<{ message: string; isError?: boolean } | null>(null);
 
-  const [recurringRules, setRecurringRules] = useState<MeetingSeries[]>(calendar.recurring_rules || []);
-  const [exceptions, setExceptions] = useState<MeetingException[]>(calendar.exceptions || []);
-  const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>(calendar.blackout_dates || []);
-  const [events, setEvents] = useState<CalendarEvent[]>(calendar.events || []);
+  const notify = (message: string, isError = false) => {
+    setToast({ message, isError });
+    setTimeout(() => {
+      setToast((curr) => (curr?.message === message ? null : curr));
+    }, 3500);
+  };
 
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  // Meeting Rule Modal
-  const [ruleModalOpen, setRuleModalOpen] = useState(false);
-  const [editingRule, setEditingRule] = useState<MeetingSeries | null>(null);
-
-  // Instance Override Modal
-  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
-  const [editingInstance, setEditingInstance] = useState<GeneratedScheduleEvent | null>(null);
-
-  // Blackout Date Inline Form
-  const [newBlackoutDate, setNewBlackoutDate] = useState('');
-  const [newBlackoutReason, setNewBlackoutReason] = useState('');
-  const [newBlackoutRuleId, setNewBlackoutRuleId] = useState('all');
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Current month schedule preview
-  const currentMonthSchedule = useMemo(() => {
-    return generateMonthSchedule(
-      currentYear,
-      currentMonth,
-      recurringRules,
-      blackoutDates,
-      events,
-      exceptions
-    );
-  }, [currentYear, currentMonth, recurringRules, blackoutDates, events, exceptions]);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
+  const handleLogout = async () => {
+    setLoggingOut(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await uploadMediaAction(formData);
-
-      if (res.success && res.url) {
-        setImageUrls({
-          en: res.url,
-          bm: res.url,
-          cn: res.url,
-          ta: res.url,
-        });
-        onNotify('Flyer image uploaded successfully');
-      } else {
-        onNotify('Image upload failed', true);
-      }
+      await logoutPinAction();
+      onLogoutSuccess();
     } catch {
-      onNotify('Upload service error', true);
+      onLogoutSuccess();
     } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setLoggingOut(false);
     }
   };
 
-  const handleSaveAll = async () => {
-    setSaving(true);
-    const payload: Partial<TeamCalendar> = {
-      ...(calendar.id ? { id: calendar.id } : {}),
-      month_label: monthLabels,
-      image_url: imageUrls,
-      default_view: defaultView,
-      recurring_rules: recurringRules,
-      exceptions,
-      blackout_dates: blackoutDates,
-      events,
-      last_reviewed_month: calendar.last_reviewed_month || currentYearMonth,
-    };
+  // Role-based visible tabs definition
+  const tabs: { id: AdminTab; label: string; icon: React.ReactNode; allowedRoles: string[] }[] = [
+    {
+      id: 'sections_tools',
+      label: 'Sections & Tools',
+      icon: <FolderKanban className="w-4 h-4 text-amber-500" />,
+      allowedRoles: ['editor', 'admin', 'superadmin'],
+    },
+    {
+      id: 'calendar',
+      label: 'Monthly Calendar',
+      icon: <Calendar className="w-4 h-4 text-blue-500" />,
+      allowedRoles: ['editor', 'admin', 'superadmin'],
+    },
+    {
+      id: 'dictionary',
+      label: 'UI Text & Translations',
+      icon: <Languages className="w-4 h-4 text-emerald-500" />,
+      allowedRoles: ['admin', 'superadmin'],
+    },
+    {
+      id: 'pins',
+      label: 'PIN & Access Control',
+      icon: <KeyRound className="w-4 h-4 text-purple-500" />,
+      allowedRoles: ['superadmin'],
+    },
+  ];
 
-    const res = await updateCalendarAction(payload);
-    setSaving(false);
-
-    if (res.success && res.data) {
-      setCalendar(res.data);
-      onNotify('Monthly calendar & schedule saved successfully!');
-    } else {
-      onNotify('Failed to save calendar', true);
-    }
-  };
-
-  const handleConfirmMonthReview = async () => {
-    setSaving(true);
-    const payload: Partial<TeamCalendar> = {
-      ...(calendar.id ? { id: calendar.id } : {}),
-      month_label: monthLabels,
-      image_url: imageUrls,
-      default_view: defaultView,
-      recurring_rules: recurringRules,
-      exceptions,
-      blackout_dates: blackoutDates,
-      events,
-      last_reviewed_month: currentYearMonth,
-    };
-
-    const res = await updateCalendarAction(payload);
-    setSaving(false);
-
-    if (res.success && res.data) {
-      setCalendar(res.data);
-      onNotify(`Month schedule confirmed and saved for ${currentYearMonth}!`);
-    } else {
-      onNotify('Failed to save month confirmation', true);
-    }
-  };
-
-  const handleSaveRule = (savedRule: MeetingSeries) => {
-    setRecurringRules((prev) => {
-      const exists = prev.some((r) => r.id === savedRule.id);
-      if (exists) {
-        return prev.map((r) => (r.id === savedRule.id ? savedRule : r));
-      }
-      return [...prev, savedRule];
-    });
-    onNotify('Meeting rule saved');
-  };
-
-  const handleDeleteRule = (id: string) => {
-    setRecurringRules((prev) => prev.filter((r) => r.id !== id));
-    onNotify('Meeting rule removed');
-  };
-
-  const handleToggleRuleActive = (id: string) => {
-    setRecurringRules((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, is_active: !r.is_active } : r))
-    );
-  };
-
-  const handleOpenOverride = (instance: GeneratedScheduleEvent) => {
-    setEditingInstance(instance);
-    setOverrideModalOpen(true);
-  };
-
-  const handleSaveException = (exception: MeetingException) => {
-    setExceptions((prev) => [
-      ...prev.filter(
-        (e) => !(e.series_id === exception.series_id && e.original_date === exception.original_date)
-      ),
-      exception,
-    ]);
-    onNotify('Schedule override applied for this occurrence');
-  };
-
-  const handleSkipInstance = (instance: GeneratedScheduleEvent) => {
-    const skipEx: MeetingException = {
-      id: `ex-${Date.now()}`,
-      series_id: instance.series_id || instance.rule_id || 'all',
-      original_date: instance.original_date || instance.date,
-      action: 'cancel',
-      reason: 'Skipped for this date',
-    };
-    setExceptions((prev) => [
-      ...prev.filter(
-        (e) => !(e.series_id === skipEx.series_id && e.original_date === skipEx.original_date)
-      ),
-      skipEx,
-    ]);
-    onNotify(`Meeting on ${instance.date} skipped for this month`);
-  };
-
-  const handleRestoreInstance = (seriesId: string, originalDate: string) => {
-    setExceptions((prev) =>
-      prev.filter((e) => !(e.series_id === seriesId && e.original_date === originalDate))
-    );
-    onNotify(`Restored occurrence for ${originalDate}`);
-  };
-
-  const handleAddBlackout = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newBlackoutDate.trim()) return;
-    const newEntry: BlackoutDate = {
-      id: `blackout-${Date.now()}`,
-      date: newBlackoutDate.trim(),
-      reason: newBlackoutReason.trim() || 'Meeting Cancelled / Rescheduled',
-      rule_id: newBlackoutRuleId,
-    };
-    setBlackoutDates((prev) => [...prev, newEntry]);
-    setNewBlackoutDate('');
-    setNewBlackoutReason('');
-    setNewBlackoutRuleId('all');
-    onNotify('Blackout date added');
-  };
-
-  const handleDeleteBlackout = (id: string) => {
-    setBlackoutDates((prev) => prev.filter((b) => b.id !== id));
-    onNotify('Blackout date removed');
-  };
-
-  const handleSaveEvent = (savedEvent: CalendarEvent) => {
-    setEvents((prev) => {
-      const exists = prev.some((e) => e.id === savedEvent.id);
-      if (exists) {
-        return prev.map((e) => (e.id === savedEvent.id ? savedEvent : e));
-      }
-      return [...prev, savedEvent];
-    });
-    onNotify('Special event updated');
-  };
-
-  const handleDeleteEvent = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    onNotify('Special event removed');
-  };
+  const visibleTabs = tabs.filter((t) => t.allowedRoles.includes(session.role));
 
   return (
-    <div className="space-y-6">
-      {/* Monthly Review Prompt Banner */}
-      {needsMonthReview && (
-        <div className="rounded-3xl border border-amber-300 dark:border-amber-600/50 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
-          <div className="flex items-start gap-3.5">
-            <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex-shrink-0">
-              <Bell className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-50">
-                🔔 Review Month Schedule ({currentYearMonth})
-              </h4>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
-                Please review this month&apos;s schedule preview below, reschedule or skip any occurrences, and confirm the month schedule.
-              </p>
-            </div>
-          </div>
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 transition-colors">
+      <AdminTopBar session={session} onLogout={handleLogout} loggingOut={loggingOut} />
 
+      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+        {/* Navigation Tabs Bar */}
+        <div className="flex overflow-x-auto no-scrollbar rounded-2xl bg-white dark:bg-zinc-900 p-1.5 border border-zinc-200 dark:border-zinc-800 shadow-sm gap-1">
+          {visibleTabs.map((t) => {
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setActiveTab(t.id)}
+                className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap select-none ${
+                  isActive
+                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm scale-[1.01]'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60'
+                }`}
+              >
+                {t.icon}
+                <span>{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab View Panels */}
+        <div className="transition-all animate-in fade-in duration-200">
+          {activeTab === 'sections_tools' && (
+            <TabSectionsTools
+              sections={sections}
+              setSections={setSections}
+              tools={tools}
+              setTools={setTools}
+              onNotify={notify}
+            />
+          )}
+
+          {activeTab === 'calendar' && (
+            <TabCalendar calendar={calendar} setCalendar={setCalendar} onNotify={notify} />
+          )}
+
+          {activeTab === 'dictionary' && (
+            <TabDictionary
+              dictionary={dictionary}
+              setDictionary={setDictionary}
+              onNotify={notify}
+            />
+          )}
+
+          {activeTab === 'pins' && session.role === 'superadmin' && (
+            <TabAccessPins
+              pins={pins}
+              setPins={setPins}
+              currentSession={session}
+              onNotify={notify}
+            />
+          )}
+        </div>
+      </main>
+
+      {/* Floating Notification Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-xl border border-zinc-700 dark:border-zinc-300 text-xs font-semibold animate-in slide-in-from-bottom-3 duration-200">
+          {toast.isError ? (
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          )}
+          <span>{toast.message}</span>
           <button
             type="button"
-            onClick={handleConfirmMonthReview}
-            disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 active:scale-95 disabled:opacity-50 flex-shrink-0 self-start sm:self-auto"
+            onClick={() => setToast(null)}
+            className="ml-2 p-0.5 rounded-full hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
           >
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-            <span>Confirm &amp; Save Month Schedule</span>
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
-
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-4">
-        <div>
-          <h2 className="text-base sm:text-lg font-bold text-zinc-950 dark:text-zinc-50 flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-amber-500" />
-            <span>Monthly Calendar &amp; Schedule Management</span>
-          </h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Manage meeting rules, monthly schedule overrides, blackout dates, and the flyer.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleSaveAll}
-          disabled={saving}
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-50 self-start sm:self-auto"
-        >
-          {saving ? (
-            <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Check className="w-3.5 h-3.5" />
-              <span>Save Calendar &amp; Schedule</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Subtabs */}
-      <div className="flex overflow-x-auto no-scrollbar gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('schedule')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'schedule'
-              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400'
-          }`}
-        >
-          <span>📅</span>
-          <span>Current Month Schedule ({currentMonthSchedule.length})</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('recurring')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'recurring'
-              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400'
-          }`}
-        >
-          <span>🔄</span>
-          <span>Meeting Rules &amp; Series ({recurringRules.length})</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('blackout')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'blackout'
-              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400'
-          }`}
-        >
-          <span>🚫</span>
-          <span>Blackout Dates ({blackoutDates.length})</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('flyer')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'flyer'
-              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400'
-          }`}
-        >
-          <span>🖼️</span>
-          <span>Flyer &amp; Settings</span>
-        </button>
-      </div>
-
-      {/* SUB-SECTION 0: CURRENT-MONTH SCHEDULE PREVIEW & INSTANCE OVERRIDES */}
-      {activeSubTab === 'schedule' && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
-                Current Month Schedule ({currentYearMonth})
-              </h3>
-              <p className="text-xs text-zinc-500">
-                1-tap override or reschedule any specific date occurrence without affecting future months.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => { setEditingRule(null); setRuleModalOpen(true); }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs self-start sm:self-auto"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Meeting Rule</span>
-            </button>
-          </div>
-
-          {currentMonthSchedule.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/40">
-              <p className="text-xs text-zinc-500 mb-2">No meetings generated for this month.</p>
-              <button
-                type="button"
-                onClick={() => { setEditingRule(null); setRuleModalOpen(true); }}
-                className="px-3.5 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-bold"
-              >
-                Create your first meeting rule
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2.5">
-              {currentMonthSchedule.map((ev) => {
-                const titleStr = getLocalized(ev.title);
-                const hasException = Boolean(ev.is_modified);
-
-                return (
-                  <div
-                    key={ev.id}
-                    className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      hasException
-                        ? 'border-purple-300 dark:border-purple-800/60 bg-purple-50/40 dark:bg-purple-950/20 shadow-xs'
-                        : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300">
-                          {ev.date}
-                        </span>
-                        {ev.time && (
-                          <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-zinc-400" />
-                            <span>{ev.time}</span>
-                          </span>
-                        )}
-                        {hasException && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 dark:bg-purple-900/60 dark:text-purple-200">
-                            Rescheduled ({ev.reason || 'Overridden'})
-                          </span>
-                        )}
-                      </div>
-
-                      <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{titleStr}</h4>
-                      <div className="flex items-center gap-3 mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 flex-wrap">
-                        {ev.speaker && <span>🎙️ {ev.speaker}</span>}
-                        {ev.venue && <span>📍 {ev.venue}</span>}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenOverride(ev)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-all active:scale-95"
-                      >
-                        <Edit className="w-3 h-3 text-amber-500" />
-                        <span>Reschedule / Edit</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleSkipInstance(ev)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-xs font-bold transition-all active:scale-95"
-                      >
-                        <Ban className="w-3 h-3" />
-                        <span>Skip Date</span>
-                      </button>
-
-                      {hasException && ev.original_date && (
-                        <button
-                          type="button"
-                          onClick={() => handleRestoreInstance(ev.series_id || ev.rule_id || '', ev.original_date!)}
-                          title="Restore original rule"
-                          className="p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* SUB-SECTION 1: RECURRING MEETINGS */}
-      {activeSubTab === 'recurring' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Meeting Rules &amp; Series</h3>
-              <p className="text-xs text-zinc-500">
-                Meeting rules that expand automatically into monthly calendar schedules.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setEditingRule(null);
-                setRuleModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Meeting Rule</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {recurringRules.map((rule) => {
-              const freqLabel =
-                rule.frequency === 'daily'
-                  ? 'Daily'
-                  : rule.frequency === 'weekly'
-                  ? `Weekly (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
-                  : rule.frequency === 'monthly_nth_weekday'
-                  ? `Monthly (${rule.nth_week ?? 1}th ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
-                  : rule.frequency === 'monthly_date'
-                  ? `Monthly (Day ${rule.day_of_month ?? 15})`
-                  : `One-Time (${rule.date || 'Once'})`;
-
-              return (
-                <div
-                  key={rule.id}
-                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
-                    rule.is_active
-                      ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xs'
-                      : 'bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 opacity-60'
-                  }`}
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                        {freqLabel}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleRuleActive(rule.id)}
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
-                          rule.is_active
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
-                            : 'bg-zinc-200 text-zinc-600 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-400'
-                        }`}
-                      >
-                        {rule.is_active ? 'Active' : 'Paused'}
-                      </button>
-                    </div>
-
-                    <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{rule.title}</h4>
-                    {rule.time && (
-                      <p className="text-xs text-zinc-500 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{rule.time}</span>
-                      </p>
-                    )}
-                    {rule.venue && (
-                      <p className="text-xs text-zinc-500 flex items-center gap-1 truncate">
-                        <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-                        <span className="truncate">{rule.venue}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-end gap-1 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingRule(rule);
-                        setRuleModalOpen(true);
-                      }}
-                      className="p-1.5 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteRule(rule.id)}
-                      className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* SUB-SECTION 2: BLACKOUT DATES */}
-      {activeSubTab === 'blackout' && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Blackout Dates &amp; Overrides</h3>
-            <p className="text-xs text-zinc-500">
-              Cancel or pause recurring meetings on specific holiday or special event dates.
-            </p>
-          </div>
-
-          <form onSubmit={handleAddBlackout} className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs flex flex-col sm:flex-row items-center gap-3">
-            <input
-              type="text"
-              required
-              value={newBlackoutDate}
-              onChange={(e) => setNewBlackoutDate(e.target.value)}
-              placeholder="Date (YYYY-MM-DD)"
-              className="w-full sm:w-40 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs font-mono"
-            />
-            <input
-              type="text"
-              value={newBlackoutReason}
-              onChange={(e) => setNewBlackoutReason(e.target.value)}
-              placeholder="Reason (e.g. Public Holiday, Rally)"
-              className="w-full sm:flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
-            />
-            <select
-              value={newBlackoutRuleId}
-              onChange={(e) => setNewBlackoutRuleId(e.target.value)}
-              className="w-full sm:w-48 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
-            >
-              <option value="all">All Recurring Meetings</option>
-              {recurringRules.map((r) => (
-                <option key={r.id} value={r.id}>{r.title}</option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 text-xs font-bold"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Blackout</span>
-            </button>
-          </form>
-
-          <div className="space-y-2">
-            {blackoutDates.length === 0 ? (
-              <div className="p-6 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800">
-                <p className="text-xs text-zinc-500">No blackout dates added.</p>
-              </div>
-            ) : (
-              blackoutDates.map((b) => {
-                const targetRule = recurringRules.find((r) => r.id === b.rule_id);
-                const targetText = b.rule_id === 'all' || !b.rule_id ? 'All Recurring Meetings' : targetRule?.title || b.rule_id;
-                return (
-                  <div key={b.id} className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs font-bold text-red-600 dark:text-red-400">{b.date}</span>
-                      <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{b.reason}</span>
-                      <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-500">{targetText}</span>
-                    </div>
-                    <button type="button" onClick={() => handleDeleteBlackout(b.id)} className="p-1 rounded text-red-500 hover:bg-red-50">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* SUB-SECTION 3: FLYER & DEFAULT VIEW */}
-      {activeSubTab === 'flyer' && (
-        <div className="space-y-5">
-          <div className="p-4 sm:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm space-y-4">
-            <div>
-              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
-                Default Top View for Users
-              </h3>
-              <p className="text-xs text-zinc-500 mb-3">
-                Choose what regular users see first when opening the Calendar tab.
-              </p>
-              <div className="grid grid-cols-2 gap-3 max-w-md">
-                <button
-                  type="button"
-                  onClick={() => setDefaultView('dynamic')}
-                  className={`p-3 rounded-2xl border text-left transition-all ${
-                    defaultView === 'dynamic'
-                      ? 'border-amber-500 bg-amber-50/60 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 font-bold'
-                      : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
-                  }`}
-                >
-                  <div className="text-sm mb-1">📅 Dynamic Calendar</div>
-                  <div className="text-[11px] opacity-75">Interactive grid with clickable meeting details</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDefaultView('flyer')}
-                  className={`p-3 rounded-2xl border text-left transition-all ${
-                    defaultView === 'flyer'
-                      ? 'border-amber-500 bg-amber-50/60 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 font-bold'
-                      : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
-                  }`}
-                >
-                  <div className="text-sm mb-1">🖼️ Monthly Flyer</div>
-                  <div className="text-[11px] opacity-75">Full visual poster with download &amp; share buttons</div>
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
-              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">
-                Monthly Flyer Image
-              </h3>
-              <div className="flex gap-2 max-w-xl">
-                <input
-                  type="text"
-                  value={imageUrls.en || ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setImageUrls({ en: val, bm: val, cn: val, ta: val });
-                  }}
-                  placeholder="https://... or click Upload Flyer"
-                  className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100"
-                />
-                <input ref={fileInputRef} type="file" onChange={handleFileUpload} className="hidden" accept="image/*" />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs transition-colors"
-                >
-                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                  <span>Upload Flyer</span>
-                </button>
-              </div>
-
-              {imageUrls.en && (
-                <div className="mt-3 relative rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 max-w-md max-h-52 bg-zinc-950">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrls.en} alt="Flyer Preview" className="w-full h-auto object-cover" />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modals */}
-      <RecurringRuleModal
-        isOpen={ruleModalOpen}
-        onClose={() => setRuleModalOpen(false)}
-        onSave={handleSaveRule}
-        rule={editingRule}
-      />
-
-      <InstanceOverrideModal
-        isOpen={overrideModalOpen}
-        onClose={() => {
-          setOverrideModalOpen(false);
-          setEditingInstance(null);
-        }}
-        instance={editingInstance}
-        onSave={handleSaveException}
-      />
     </div>
   );
 }
@@ -11870,6 +10130,1812 @@ test('calendar: splitUpcomingMeetings separates the next 2 meetings from the res
 });
 </file>
 
+<file path="src/app/actions/adminActions.ts">
+'use server';
+
+import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
+import { supabaseAdmin, getSupabaseAdminClient } from '@/lib/supabase';
+import {
+  DEFAULT_SECTIONS,
+  DEFAULT_TOOLS,
+  DEFAULT_CALENDAR,
+} from '@/lib/mockData';
+import { DEFAULT_UI_DICTIONARY } from '@/lib/dictionary';
+import { pruneCalendarData, unpackCalendar } from '@/lib/calendarGenerator';
+import type {
+  AccessPin,
+  AccessPinRole,
+  Database,
+  LanguageCode,
+  Section,
+  TeamCalendar,
+  Tool,
+  UiDictionary,
+  AdminSession,
+  AdminDashboardData,
+  ActionResponse,
+} from '@/types/app';
+import { PIN_SESSION_COOKIE } from '@/types/app';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+const isValidUuid = (str?: string) =>
+  Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+
+function getAdminClient(): SupabaseClient<Database> {
+  try {
+    return getSupabaseAdminClient();
+  } catch {
+    return supabaseAdmin;
+  }
+}
+
+function safeRevalidate(paths: string[] = ['/', '/admin']) {
+  try {
+    for (const p of paths) {
+      revalidatePath(p);
+    }
+  } catch {
+    // Revalidation ignored in testing or non-standard environments
+  }
+}
+
+async function requireSession(allowedRoles?: AccessPinRole[]): Promise<AdminSession> {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get(PIN_SESSION_COOKIE);
+
+  if (!sessionCookie?.value) {
+    throw new Error('Authentication required: No active PIN session found.');
+  }
+
+  let session: AdminSession;
+  try {
+    session = JSON.parse(sessionCookie.value);
+  } catch {
+    cookieStore.delete(PIN_SESSION_COOKIE);
+    throw new Error('Invalid session format. Please log in again.');
+  }
+
+  if (
+    !session?.id ||
+    !session?.role ||
+    !['superadmin', 'admin', 'editor'].includes(session.role)
+  ) {
+    cookieStore.delete(PIN_SESSION_COOKIE);
+    throw new Error('Corrupt session data. Please log in again.');
+  }
+
+  // Master Super Admin session bypasses DB query check
+  if (session.id === 'master-superadmin') {
+    session.role = 'superadmin';
+    session.label = session.label || 'Master Super Admin';
+    return session;
+  }
+
+  const client = getAdminClient();
+  const { data: pinRow, error } = await client
+    .from('access_pins')
+    .select('id, label, role, is_active')
+    .eq('id', session.id)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('[requireSession] Database query error when verifying session:', error.message);
+  } else if (!pinRow || !pinRow.is_active) {
+    cookieStore.delete(PIN_SESSION_COOKIE);
+    throw new Error('Session has expired or PIN access has been deactivated.');
+  } else {
+    session.role = pinRow.role as AccessPinRole;
+    session.label = pinRow.label;
+  }
+
+  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(session.role)) {
+    throw new Error(
+      `Access denied: Role '${session.role}' is not authorized to perform this operation.`
+    );
+  }
+
+  return session;
+}
+// =============================================================================
+// 1. PIN AUTHENTICATION & SESSION MANAGEMENT
+// =============================================================================
+
+export async function verifyPinAction(pin: string): Promise<ActionResponse<AdminSession>> {
+  try {
+    if (!pin || typeof pin !== 'string' || !pin.trim()) {
+      return { success: false, error: 'PIN is required' };
+    }
+
+    const trimmedPin = pin.trim();
+
+    // Guaranteed master fallback for Super Admin PIN '371983'
+    if (trimmedPin === '371983') {
+      const masterSession: AdminSession = {
+        id: 'master-superadmin',
+        label: 'Master Super Admin',
+        role: 'superadmin',
+      };
+
+      const cookieStore = await cookies();
+      cookieStore.set(PIN_SESSION_COOKIE, JSON.stringify(masterSession), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      return {
+        success: true,
+        session: masterSession,
+        data: masterSession,
+      };
+    }
+
+    const client = getAdminClient();
+
+    const { data: pinRecord, error } = await client
+      .from('access_pins')
+      .select('id, label, pin_code, role, is_active')
+      .eq('pin_code', trimmedPin)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[verifyPinAction] Supabase query error:', error);
+      return { success: false, error: 'Authentication service error. Please try again.' };
+    }
+
+    if (!pinRecord) {
+      return { success: false, error: 'Invalid or inactive PIN' };
+    }
+
+    const validRoles: AccessPinRole[] = ['superadmin', 'admin', 'editor'];
+    if (!validRoles.includes(pinRecord.role as AccessPinRole)) {
+      return { success: false, error: 'Unauthorized role configured for this PIN' };
+    }
+
+    const sessionPayload: AdminSession = {
+      id: pinRecord.id,
+      label: pinRecord.label,
+      role: pinRecord.role as AccessPinRole,
+    };
+
+    const cookieStore = await cookies();
+    cookieStore.set(PIN_SESSION_COOKIE, JSON.stringify(sessionPayload), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return {
+      success: true,
+      session: sessionPayload,
+      data: sessionPayload,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Authentication failed';
+    return { success: false, error: message };
+  }
+}
+
+export async function getSessionAction(): Promise<ActionResponse<AdminSession | null>> {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get(PIN_SESSION_COOKIE);
+
+    if (!sessionCookie?.value) {
+      return { success: true, session: null, data: null };
+    }
+
+    let session: AdminSession;
+    try {
+      session = JSON.parse(sessionCookie.value);
+    } catch {
+      cookieStore.delete(PIN_SESSION_COOKIE);
+      return { success: true, session: null, data: null };
+    }
+
+    if (
+      !session?.id ||
+      !session?.role ||
+      !['superadmin', 'admin', 'editor'].includes(session.role)
+    ) {
+      cookieStore.delete(PIN_SESSION_COOKIE);
+      return { success: true, session: null, data: null };
+    }
+
+    if (session.id === 'master-superadmin') {
+      return { success: true, session, data: session };
+    }
+
+    const client = getAdminClient();
+    const { data: pinRecord, error } = await client
+      .from('access_pins')
+      .select('id, label, role, is_active')
+      .eq('id', session.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('[getSessionAction] DB check warning:', error.message);
+      return { success: true, session, data: session };
+    }
+
+    if (!pinRecord || !pinRecord.is_active) {
+      cookieStore.delete(PIN_SESSION_COOKIE);
+      return {
+        success: false,
+        session: null,
+        data: null,
+        error: 'Session expired or PIN deactivated',
+      };
+    }
+
+    const verifiedSession: AdminSession = {
+      id: pinRecord.id,
+      label: pinRecord.label,
+      role: pinRecord.role as AccessPinRole,
+    };
+
+    return {
+      success: true,
+      session: verifiedSession,
+      data: verifiedSession,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to retrieve session';
+    return { success: false, error: message, session: null, data: null };
+  }
+}
+
+export async function logoutPinAction(): Promise<ActionResponse<void>> {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete(PIN_SESSION_COOKIE);
+    return { success: true, message: 'Logged out successfully' };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Logout failed';
+    return { success: false, error: message };
+  }
+}
+
+export async function getAdminDashboardDataAction(): Promise<ActionResponse<AdminDashboardData>> {
+  try {
+    const session = await requireSession(['editor', 'admin', 'superadmin']);
+    const client = getAdminClient();
+
+    const [secRes, toolRes, calRes, dictRes] = await Promise.all([
+      client.from('sections').select('*').order('sort_order', { ascending: true }),
+      client.from('tools').select('*').order('sort_order', { ascending: true }),
+      client.from('team_calendar').select('*').limit(1),
+      client.from('ui_dictionary').select('*').order('key', { ascending: true }),
+    ]);
+
+    const sections: Section[] =
+      secRes.data && secRes.data.length > 0 ? (secRes.data as Section[]) : DEFAULT_SECTIONS;
+    const tools: Tool[] =
+      toolRes.data && toolRes.data.length > 0 ? (toolRes.data as Tool[]) : DEFAULT_TOOLS;
+    const calendar: TeamCalendar =
+      calRes.data && calRes.data.length > 0
+        ? unpackCalendar(calRes.data[0] as TeamCalendar)
+        : DEFAULT_CALENDAR;
+
+    const dictMap: Record<string, UiDictionary> = { ...DEFAULT_UI_DICTIONARY };
+    if (dictRes.data && dictRes.data.length > 0) {
+      for (const d of dictRes.data as UiDictionary[]) {
+        dictMap[d.key] = d;
+      }
+    }
+    const dictionary: UiDictionary[] = Object.values(dictMap);
+
+    let pins: AccessPin[] | undefined;
+    if (session.role === 'superadmin') {
+      const pinsRes = await client
+        .from('access_pins')
+        .select('*')
+        .order('created_at', { ascending: false });
+      pins = !pinsRes.error && pinsRes.data ? (pinsRes.data as AccessPin[]) : [];
+    }
+
+    return {
+      success: true,
+      data: {
+        session,
+        sections,
+        tools,
+        calendar,
+        dictionary,
+        pins,
+      },
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to retrieve admin data';
+    return { success: false, error: message };
+  }
+}
+
+// =============================================================================
+// 2. ROLE-GUARDED ACTIONS: EDITOR, ADMIN, SUPERADMIN
+// =============================================================================
+
+export async function upsertSectionAction(
+  section: Partial<Section>
+): Promise<ActionResponse<Section>> {
+  try {
+    await requireSession(['editor', 'admin', 'superadmin']);
+    const client = getAdminClient();
+
+    const enTitle = section.title?.en?.trim() || '';
+    if (!enTitle) {
+      return { success: false, error: 'Section title (EN) is required' };
+    }
+
+    const generatedSlug =
+      section.slug?.trim() ||
+      enTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') ||
+      `section-${Date.now()}`;
+
+    const payload = {
+      slug: generatedSlug,
+      icon_name: section.icon_name || 'Folder',
+      sort_order: typeof section.sort_order === 'number' ? section.sort_order : 0,
+      is_visible: section.is_visible !== false,
+      title: {
+        en: enTitle,
+        bm: section.title?.bm?.trim() || enTitle,
+        cn: section.title?.cn?.trim() || enTitle,
+        ta: section.title?.ta?.trim() || enTitle,
+      },
+      description: {
+        en: section.description?.en?.trim() || '',
+        bm: section.description?.bm?.trim() || section.description?.en?.trim() || '',
+        cn: section.description?.cn?.trim() || section.description?.en?.trim() || '',
+        ta: section.description?.ta?.trim() || section.description?.en?.trim() || '',
+      },
+    };
+
+    let result;
+    if (isValidUuid(section.id)) {
+      result = await client
+        .from('sections')
+        .update(payload)
+        .eq('id', section.id!)
+        .select()
+        .single();
+    } else {
+      result = await client
+        .from('sections')
+        .insert(payload)
+        .select()
+        .single();
+    }
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    safeRevalidate();
+    return { success: true, data: result.data as Section };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to save section';
+    return { success: false, error: message };
+  }
+}
+
+export async function deleteSectionAction(id: string): Promise<ActionResponse<void>> {
+  try {
+    await requireSession(['editor', 'admin', 'superadmin']);
+    if (!id) return { success: false, error: 'Section ID is required' };
+
+    const client = getAdminClient();
+
+    // Remove associated tools
+    await client.from('tools').delete().eq('section_id', id);
+
+    const { error } = await client.from('sections').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+
+    safeRevalidate();
+    return { success: true, message: 'Section deleted successfully' };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to delete section';
+    return { success: false, error: message };
+  }
+}
+
+export async function reorderSectionsAction(
+  items: { id: string; sort_order: number }[] | string[]
+): Promise<ActionResponse<void>> {
+  try {
+    await requireSession(['editor', 'admin', 'superadmin']);
+    if (!Array.isArray(items) || items.length === 0) {
+      return { success: false, error: 'No sections provided to reorder' };
+    }
+
+    const client = getAdminClient();
+    const normalized: { id: string; sort_order: number }[] = items.map((item, index) => {
+      if (typeof item === 'string') {
+        return { id: item, sort_order: index };
+      }
+      return { id: item.id, sort_order: item.sort_order ?? index };
+    });
+
+    const updates = normalized.map((item) =>
+      client.from('sections').update({ sort_order: item.sort_order }).eq('id', item.id)
+    );
+
+    const results = await Promise.all(updates);
+    const firstError = results.find((r) => r.error);
+    if (firstError?.error) {
+      throw new Error(firstError.error.message);
+    }
+
+    safeRevalidate();
+    return { success: true, message: 'Sections reordered successfully' };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to reorder sections';
+    return { success: false, error: message };
+  }
+}
+
+export async function reorderToolsAction(
+  items: { id: string; sort_order: number }[] | string[]
+): Promise<ActionResponse<void>> {
+  try {
+    await requireSession(['editor', 'admin', 'superadmin']);
+    if (!Array.isArray(items) || items.length === 0) {
+      return { success: false, error: 'No tools provided to reorder' };
+    }
+
+    const client = getAdminClient();
+    const normalized: { id: string; sort_order: number }[] = items.map((item, index) => {
+      if (typeof item === 'string') {
+        return { id: item, sort_order: index };
+      }
+      return { id: item.id, sort_order: item.sort_order ?? index };
+    });
+
+    const updates = normalized.map((item) =>
+      client.from('tools').update({ sort_order: item.sort_order }).eq('id', item.id)
+    );
+
+    const results = await Promise.all(updates);
+    const firstError = results.find((r) => r.error);
+    if (firstError?.error) {
+      throw new Error(firstError.error.message);
+    }
+
+    safeRevalidate();
+    return { success: true, message: 'Tools reordered successfully' };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to reorder tools';
+    return { success: false, error: message };
+  }
+}
+
+export async function upsertToolAction(tool: Partial<Tool>): Promise<ActionResponse<Tool>> {
+  try {
+    await requireSession(['editor', 'admin', 'superadmin']);
+    const client = getAdminClient();
+
+    if (!tool.section_id) {
+      return { success: false, error: 'Section ID is required for a tool' };
+    }
+    const enTitle = tool.title?.en?.trim() || '';
+    if (!enTitle) {
+      return { success: false, error: 'Tool title (EN) is required' };
+    }
+
+    const enUrl = tool.url?.en?.trim() || '';
+    const enDesc = tool.description?.en?.trim() || '';
+
+    const validLangCodes: LanguageCode[] = ['en', 'bm', 'cn', 'ta'];
+    const filteredLangs = Array.isArray(tool.available_languages)
+      ? tool.available_languages.filter((l): l is LanguageCode =>
+          validLangCodes.includes(l as LanguageCode)
+        )
+      : [];
+    const safeLanguages: LanguageCode[] = filteredLangs.length > 0 ? filteredLangs : ['en'];
+
+    const payload = {
+      section_id: tool.section_id,
+      type: tool.type || 'link',
+      title: {
+        en: enTitle,
+        bm: tool.title?.bm?.trim() || enTitle,
+        cn: tool.title?.cn?.trim() || enTitle,
+        ta: tool.title?.ta?.trim() || enTitle,
+      },
+      description: {
+        en: enDesc,
+        bm: tool.description?.bm?.trim() || enDesc,
+        cn: tool.description?.cn?.trim() || enDesc,
+        ta: tool.description?.ta?.trim() || enDesc,
+      },
+      speaker_name: tool.speaker_name?.trim() || '',
+      duration: tool.duration?.trim() || '',
+      available_languages: safeLanguages,
+      topics: {
+        en: Array.isArray(tool.topics?.en) ? tool.topics.en : [],
+        bm: Array.isArray(tool.topics?.bm) ? tool.topics.bm : [],
+        cn: Array.isArray(tool.topics?.cn) ? tool.topics.cn : [],
+        ta: Array.isArray(tool.topics?.ta) ? tool.topics.ta : [],
+      },
+      url: {
+        en: enUrl,
+        bm: tool.url?.bm?.trim() || enUrl,
+        cn: tool.url?.cn?.trim() || enUrl,
+        ta: tool.url?.ta?.trim() || enUrl,
+      },
+      whatsapp_script: {
+        en: tool.whatsapp_script?.en?.trim() || '',
+        bm: tool.whatsapp_script?.bm?.trim() || tool.whatsapp_script?.en?.trim() || '',
+        cn: tool.whatsapp_script?.cn?.trim() || tool.whatsapp_script?.en?.trim() || '',
+        ta: tool.whatsapp_script?.ta?.trim() || tool.whatsapp_script?.en?.trim() || '',
+      },
+      thumbnail_url: tool.thumbnail_url?.trim() || '',
+      is_featured: Boolean(tool.is_featured),
+      sort_order: typeof tool.sort_order === 'number' ? tool.sort_order : 0,
+      is_visible: tool.is_visible !== false,
+    };
+
+    let result;
+    if (isValidUuid(tool.id)) {
+      result = await client
+        .from('tools')
+        .update(payload)
+        .eq('id', tool.id!)
+        .select()
+        .single();
+    } else {
+      result = await client
+        .from('tools')
+        .insert(payload)
+        .select()
+        .single();
+    }
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    safeRevalidate();
+    return { success: true, data: result.data as Tool };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to save tool';
+    return { success: false, error: message };
+  }
+}
+
+export async function deleteToolAction(id: string): Promise<ActionResponse<void>> {
+  try {
+    await requireSession(['editor', 'admin', 'superadmin']);
+    if (!id) return { success: false, error: 'Tool ID is required' };
+
+    const client = getAdminClient();
+    const { error } = await client.from('tools').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+
+    safeRevalidate();
+    return { success: true, message: 'Tool deleted successfully' };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to delete tool';
+    return { success: false, error: message };
+  }
+}
+
+export async function uploadMediaAction(formData: FormData): Promise<ActionResponse<{ url: string; path: string }>> {
+  try {
+    await requireSession(['editor', 'admin', 'superadmin']);
+
+    const file = (formData.get('file') || formData.get('media')) as File | null;
+    if (!file || typeof file === 'string' || file.size === 0) {
+      return { success: false, error: 'No valid file provided for upload' };
+    }
+
+    const client = getAdminClient();
+    const bucketName = 'media';
+
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const filePath = `uploads/${Date.now()}_${sanitizedFileName}`;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const { error: uploadError } = await client.storage
+      .from(bucketName)
+      .upload(filePath, buffer, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(`Upload failed: ${uploadError.message}`);
+    }
+
+    const { data: urlData } = client.storage.from(bucketName).getPublicUrl(filePath);
+
+    return {
+      success: true,
+      url: urlData.publicUrl,
+      path: filePath,
+      data: { url: urlData.publicUrl, path: filePath },
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Media upload failed';
+    return { success: false, error: message };
+  }
+}
+
+// =============================================================================
+// 3. ROLE-GUARDED ACTIONS: ADMIN AND SUPERADMIN ONLY
+// =============================================================================
+
+export async function updateCalendarAction(
+  calendarData: Partial<TeamCalendar>
+): Promise<ActionResponse<TeamCalendar>> {
+  try {
+    await requireSession(['editor', 'admin', 'superadmin']);
+    const client = getAdminClient();
+
+    // Auto-cleanup records older than 2 months prior
+    const cleanedCalendar = pruneCalendarData(calendarData);
+
+    const recurringRules = Array.isArray(cleanedCalendar.recurring_rules)
+      ? cleanedCalendar.recurring_rules
+      : [];
+    const exceptions = Array.isArray(cleanedCalendar.exceptions)
+      ? cleanedCalendar.exceptions
+      : [];
+    const blackoutDates = Array.isArray(cleanedCalendar.blackout_dates)
+      ? cleanedCalendar.blackout_dates
+      : [];
+    const baseEvents = Array.isArray(cleanedCalendar.events)
+      ? cleanedCalendar.events.filter((e) => e.id !== '_meta_calendar')
+      : [];
+
+    // Fallback meta marker in events JSONB so if table columns are not migrated, data is preserved!
+    const metaEvent = {
+      id: '_meta_calendar',
+      date: '9999-12-31',
+      time: '',
+      title: { en: '', bm: '', cn: '', ta: '' },
+      speaker: '',
+      location_or_link: '',
+      description: JSON.stringify({
+        recurring_rules: recurringRules,
+        exceptions,
+        blackout_dates: blackoutDates,
+        default_view: cleanedCalendar.default_view || 'dynamic',
+        last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
+      }),
+    };
+
+    const payload: Record<string, unknown> = {
+      month_label: {
+        en: cleanedCalendar.month_label?.en?.trim() || '',
+        bm: cleanedCalendar.month_label?.bm?.trim() || '',
+        cn: cleanedCalendar.month_label?.cn?.trim() || '',
+        ta: cleanedCalendar.month_label?.ta?.trim() || '',
+      },
+      image_url: {
+        en: cleanedCalendar.image_url?.en?.trim() || '',
+        bm: cleanedCalendar.image_url?.bm?.trim() || '',
+        cn: cleanedCalendar.image_url?.cn?.trim() || '',
+        ta: cleanedCalendar.image_url?.ta?.trim() || '',
+      },
+      events: [...baseEvents, metaEvent],
+      recurring_rules: recurringRules,
+      exceptions,
+      blackout_dates: blackoutDates,
+      default_view: cleanedCalendar.default_view || 'dynamic',
+      last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
+    };
+
+    let result;
+    const { data: existing } = await client
+      .from('team_calendar')
+      .select('id')
+      .limit(1)
+      .maybeSingle();
+
+    const hasExisting = existing?.id !== undefined && existing?.id !== null;
+
+    if (hasExisting) {
+      result = await (client.from('team_calendar') as any)
+        .update(payload)
+        .eq('id', existing.id)
+        .select()
+        .single();
+    } else {
+      result = await (client.from('team_calendar') as any)
+        .insert(payload)
+        .select()
+        .single();
+    }
+
+    if (result.error) {
+      // If postgres schema doesn't have the newly added json columns yet, fallback to base payload
+      const basePayload = {
+        month_label: payload.month_label,
+        image_url: payload.image_url,
+        events: payload.events,
+      };
+      const fallbackRes = hasExisting
+        ? await (client.from('team_calendar') as any).update(basePayload).eq('id', existing.id).select().single()
+        : await (client.from('team_calendar') as any).insert(basePayload).select().single();
+
+      if (fallbackRes.error) {
+        throw new Error(fallbackRes.error.message);
+      }
+      safeRevalidate();
+      return {
+        success: true,
+        data: {
+          ...(fallbackRes.data as TeamCalendar),
+          events: baseEvents,
+          recurring_rules: recurringRules,
+          exceptions,
+          blackout_dates: blackoutDates,
+          default_view: cleanedCalendar.default_view || 'dynamic',
+          last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
+        },
+      };
+    }
+
+    safeRevalidate();
+    return {
+      success: true,
+      data: {
+        ...(result.data as TeamCalendar),
+        events: baseEvents,
+        recurring_rules: recurringRules,
+        exceptions,
+        blackout_dates: blackoutDates,
+        default_view: cleanedCalendar.default_view || 'dynamic',
+        last_reviewed_month: cleanedCalendar.last_reviewed_month || '',
+      },
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to update calendar';
+    return { success: false, error: message };
+  }
+}
+
+export async function updateDictionaryAction(
+  entryOrEntries: UiDictionary | UiDictionary[]
+): Promise<ActionResponse<UiDictionary[]>> {
+  try {
+    await requireSession(['admin', 'superadmin']);
+    const client = getAdminClient();
+
+    const entries = Array.isArray(entryOrEntries) ? entryOrEntries : [entryOrEntries];
+    if (entries.length === 0) {
+      return { success: false, error: 'No dictionary entries provided' };
+    }
+
+    for (const item of entries) {
+      if (!item.key || !item.key.trim()) {
+        return { success: false, error: 'Dictionary key is required for every row' };
+      }
+    }
+
+    const rows = entries.map((e) => ({
+      key: e.key.trim(),
+      en: e.en ?? '',
+      bm: e.bm ?? '',
+      cn: e.cn ?? '',
+      ta: e.ta ?? '',
+    }));
+
+    const { data, error } = await client
+      .from('ui_dictionary')
+      .upsert(rows, { onConflict: 'key' })
+      .select();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    safeRevalidate();
+    return { success: true, data: data as UiDictionary[] };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to update dictionary';
+    return { success: false, error: message };
+  }
+}
+
+// =============================================================================
+// 4. ROLE-GUARDED ACTIONS: SUPERADMIN ONLY
+// =============================================================================
+
+export async function getPinsAction(): Promise<ActionResponse<AccessPin[]>> {
+  try {
+    await requireSession(['superadmin']);
+    const client = getAdminClient();
+
+    const { data, error } = await client
+      .from('access_pins')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return { success: true, data: (data || []) as AccessPin[] };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to fetch PINs';
+    return { success: false, error: message };
+  }
+}
+
+export async function upsertPinAction(pinData: {
+  id?: string;
+  label: string;
+  pin_code: string;
+  role: AccessPinRole;
+  is_active?: boolean;
+}): Promise<ActionResponse<AccessPin>> {
+  try {
+    await requireSession(['superadmin']);
+
+    if (!pinData.label || !pinData.label.trim()) {
+      return { success: false, error: 'PIN label is required' };
+    }
+    if (!pinData.pin_code || !pinData.pin_code.trim()) {
+      return { success: false, error: 'PIN code is required' };
+    }
+    if (!['superadmin', 'admin', 'editor'].includes(pinData.role)) {
+      return { success: false, error: 'Invalid role specified' };
+    }
+
+    const client = getAdminClient();
+    const payload = {
+      label: pinData.label.trim(),
+      pin_code: pinData.pin_code.trim(),
+      role: pinData.role,
+      is_active: pinData.is_active !== false,
+    };
+
+    let result;
+    if (pinData.id) {
+      result = await client
+        .from('access_pins')
+        .update(payload)
+        .eq('id', pinData.id)
+        .select()
+        .single();
+    } else {
+      result = await client
+        .from('access_pins')
+        .insert(payload)
+        .select()
+        .single();
+    }
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return { success: true, data: result.data as AccessPin };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to save PIN';
+    return { success: false, error: message };
+  }
+}
+
+export async function deletePinAction(id: string): Promise<ActionResponse<void>> {
+  try {
+    const session = await requireSession(['superadmin']);
+
+    if (!id) {
+      return { success: false, error: 'PIN ID is required' };
+    }
+
+    if (session.id === id) {
+      return {
+        success: false,
+        error: 'Security restriction: You cannot delete your own currently active PIN session.',
+      };
+    }
+
+    const client = getAdminClient();
+    const { error } = await client.from('access_pins').delete().eq('id', id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return { success: true, message: 'PIN deleted successfully' };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to delete PIN';
+    return { success: false, error: message };
+  }
+}
+</file>
+
+<file path="src/components/admin/TabCalendar.tsx">
+'use client';
+
+import React, { useState, useMemo, useRef } from 'react';
+import {
+  Calendar as CalendarIcon,
+  Upload,
+  Loader2,
+  Check,
+  Plus,
+  Trash2,
+  Edit,
+  Sparkles,
+  Ban,
+  Clock,
+  MapPin,
+  RotateCcw,
+  Bell,
+  ArrowRight,
+} from 'lucide-react';
+import { RecurringRuleModal } from './RecurringRuleModal';
+import { InstanceOverrideModal } from './InstanceOverrideModal';
+import { updateCalendarAction, uploadMediaAction } from '@/app/actions/adminActions';
+import type {
+  TeamCalendar,
+  CalendarEvent,
+  MeetingSeries,
+  MeetingException,
+  BlackoutDate,
+} from '@/types/app';
+import {
+  generateMonthSchedule,
+  type GeneratedScheduleEvent,
+} from '@/lib/calendarGenerator';
+import { useApp } from '@/context/AppContext';
+
+interface TabCalendarProps {
+  calendar: TeamCalendar;
+  setCalendar: React.Dispatch<React.SetStateAction<TeamCalendar>>;
+  onNotify: (msg: string, isError?: boolean) => void;
+}
+
+export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProps) {
+  const { getLocalized } = useApp();
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentYearMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+  const needsMonthReview = calendar.last_reviewed_month !== currentYearMonth;
+
+  const [activeSubTab, setActiveSubTab] = useState<'schedule' | 'recurring' | 'blackout'>('schedule');
+
+  const [monthLabels, setMonthLabels] = useState(calendar.month_label || { en: '', bm: '', cn: '', ta: '' });
+  const [imageUrls, setImageUrls] = useState(calendar.image_url || { en: '', bm: '', cn: '', ta: '' });
+  const [defaultView, setDefaultView] = useState<'dynamic' | 'flyer'>(calendar.default_view || 'dynamic');
+
+  const [recurringRules, setRecurringRules] = useState<MeetingSeries[]>(calendar.recurring_rules || []);
+  const [exceptions, setExceptions] = useState<MeetingException[]>(calendar.exceptions || []);
+  const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>(calendar.blackout_dates || []);
+  const [events, setEvents] = useState<CalendarEvent[]>(calendar.events || []);
+
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Auto-persist calendar state directly to Supabase
+  const persistCalendar = async (updates: Partial<TeamCalendar>) => {
+    setSaving(true);
+    const payload: Partial<TeamCalendar> = {
+      ...(calendar.id ? { id: calendar.id } : {}),
+      month_label: updates.month_label ?? monthLabels,
+      image_url: updates.image_url ?? imageUrls,
+      default_view: updates.default_view ?? defaultView,
+      recurring_rules: updates.recurring_rules ?? recurringRules,
+      exceptions: updates.exceptions ?? exceptions,
+      blackout_dates: updates.blackout_dates ?? blackoutDates,
+      events: updates.events ?? events,
+      last_reviewed_month: updates.last_reviewed_month ?? calendar.last_reviewed_month ?? currentYearMonth,
+    };
+
+    const res = await updateCalendarAction(payload);
+    setSaving(false);
+
+    if (res.success && res.data) {
+      setCalendar(res.data);
+      return res.data;
+    }
+    return null;
+  };
+
+  // Meeting Rule Modal
+  const [ruleModalOpen, setRuleModalOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<MeetingSeries | null>(null);
+
+  // Instance Override Modal
+  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
+  const [editingInstance, setEditingInstance] = useState<GeneratedScheduleEvent | null>(null);
+
+  // Blackout Date Inline Form
+  const [newBlackoutDate, setNewBlackoutDate] = useState('');
+  const [newBlackoutReason, setNewBlackoutReason] = useState('');
+  const [newBlackoutRuleId, setNewBlackoutRuleId] = useState('all');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Current month schedule preview
+  const currentMonthSchedule = useMemo(() => {
+    return generateMonthSchedule(
+      currentYear,
+      currentMonth,
+      recurringRules,
+      blackoutDates,
+      events,
+      exceptions
+    );
+  }, [currentYear, currentMonth, recurringRules, blackoutDates, events, exceptions]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await uploadMediaAction(formData);
+
+      if (res.success && res.url) {
+        const nextImages = {
+          en: res.url,
+          bm: res.url,
+          cn: res.url,
+          ta: res.url,
+        };
+        setImageUrls(nextImages);
+        const saved = await persistCalendar({ image_url: nextImages });
+        if (saved) {
+          onNotify('Flyer image uploaded and saved successfully');
+        } else {
+          onNotify('Flyer image uploaded, local sync only', true);
+        }
+      } else {
+        onNotify('Image upload failed', true);
+      }
+    } catch {
+      onNotify('Upload service error', true);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFlyer = async () => {
+    const emptyImages = { en: '', bm: '', cn: '', ta: '' };
+    setImageUrls(emptyImages);
+    const saved = await persistCalendar({ image_url: emptyImages });
+    if (saved) onNotify('Monthly flyer removed and saved');
+  };
+
+  const handleToggleDefaultView = async (view: 'dynamic' | 'flyer') => {
+    setDefaultView(view);
+    const saved = await persistCalendar({ default_view: view });
+    if (saved) onNotify(`Default view set to ${view === 'dynamic' ? 'Dynamic Calendar' : 'Monthly Flyer'}`);
+  };
+
+  const handleUrlChange = (val: string) => {
+    setImageUrls({ en: val, bm: val, cn: val, ta: val });
+  };
+
+  const handleUrlBlur = async () => {
+    if (imageUrls.en !== (calendar.image_url?.en || '')) {
+      await persistCalendar({ image_url: imageUrls });
+      onNotify('Flyer URL saved');
+    }
+  };
+
+  const handleSaveAll = async () => {
+    setSaving(true);
+    const payload: Partial<TeamCalendar> = {
+      ...(calendar.id ? { id: calendar.id } : {}),
+      month_label: monthLabels,
+      image_url: imageUrls,
+      default_view: defaultView,
+      recurring_rules: recurringRules,
+      exceptions,
+      blackout_dates: blackoutDates,
+      events,
+      last_reviewed_month: calendar.last_reviewed_month || currentYearMonth,
+    };
+
+    const res = await updateCalendarAction(payload);
+    setSaving(false);
+
+    if (res.success && res.data) {
+      setCalendar(res.data);
+      onNotify('Monthly calendar & schedule saved successfully!');
+    } else {
+      onNotify('Failed to save calendar', true);
+    }
+  };
+
+  const handleConfirmMonthReview = async () => {
+    setSaving(true);
+    const payload: Partial<TeamCalendar> = {
+      ...(calendar.id ? { id: calendar.id } : {}),
+      month_label: monthLabels,
+      image_url: imageUrls,
+      default_view: defaultView,
+      recurring_rules: recurringRules,
+      exceptions,
+      blackout_dates: blackoutDates,
+      events,
+      last_reviewed_month: currentYearMonth,
+    };
+
+    const res = await updateCalendarAction(payload);
+    setSaving(false);
+
+    if (res.success && res.data) {
+      setCalendar(res.data);
+      onNotify(`Month schedule confirmed and saved for ${currentYearMonth}!`);
+    } else {
+      onNotify('Failed to save month confirmation', true);
+    }
+  };
+
+  const handleSaveRule = async (savedRule: MeetingSeries) => {
+    const nextRules = recurringRules.some((r) => r.id === savedRule.id)
+      ? recurringRules.map((r) => (r.id === savedRule.id ? savedRule : r))
+      : [...recurringRules, savedRule];
+    setRecurringRules(nextRules);
+    setRuleModalOpen(false);
+    setEditingRule(null);
+    const res = await persistCalendar({ recurring_rules: nextRules });
+    if (res) onNotify('Meeting rule saved');
+    else onNotify('Meeting rule saved locally', true);
+  };
+
+  const handleDeleteRule = async (id: string) => {
+    const nextRules = recurringRules.filter((r) => r.id !== id);
+    setRecurringRules(nextRules);
+    const res = await persistCalendar({ recurring_rules: nextRules });
+    if (res) onNotify('Meeting rule removed');
+    else onNotify('Failed to remove meeting rule', true);
+  };
+
+  const handleToggleRuleActive = async (id: string) => {
+    const nextRules = recurringRules.map((r) =>
+      r.id === id ? { ...r, is_active: !r.is_active } : r
+    );
+    setRecurringRules(nextRules);
+    await persistCalendar({ recurring_rules: nextRules });
+  };
+
+  const handleOpenOverride = (instance: GeneratedScheduleEvent) => {
+    setEditingInstance(instance);
+    setOverrideModalOpen(true);
+  };
+
+  const handleSaveException = async (exception: MeetingException) => {
+    const nextExceptions = [
+      ...exceptions.filter(
+        (e) => !(e.series_id === exception.series_id && e.original_date === exception.original_date)
+      ),
+      exception,
+    ];
+    setExceptions(nextExceptions);
+    setOverrideModalOpen(false);
+    setEditingInstance(null);
+    const res = await persistCalendar({ exceptions: nextExceptions });
+    if (res) onNotify('Schedule override applied and saved');
+    else onNotify('Failed to save override', true);
+  };
+
+  const handleSkipInstance = async (instance: GeneratedScheduleEvent) => {
+    const skipEx: MeetingException = {
+      id: `ex-${Date.now()}`,
+      series_id: instance.series_id || instance.rule_id || 'all',
+      original_date: instance.original_date || instance.date,
+      action: 'cancel',
+      reason: 'Skipped for this date',
+    };
+    const nextExceptions = [
+      ...exceptions.filter(
+        (e) => !(e.series_id === skipEx.series_id && e.original_date === skipEx.original_date)
+      ),
+      skipEx,
+    ];
+    setExceptions(nextExceptions);
+    const res = await persistCalendar({ exceptions: nextExceptions });
+    if (res) onNotify(`Meeting on ${instance.date} skipped and saved`);
+    else onNotify('Failed to save skip', true);
+  };
+
+  const handleRestoreInstance = async (seriesId: string, originalDate: string) => {
+    const nextExceptions = exceptions.filter(
+      (e) => !(e.series_id === seriesId && e.original_date === originalDate)
+    );
+    setExceptions(nextExceptions);
+    const res = await persistCalendar({ exceptions: nextExceptions });
+    if (res) onNotify(`Restored occurrence for ${originalDate}`);
+  };
+
+  const handleAddBlackout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBlackoutDate.trim()) return;
+    const newEntry: BlackoutDate = {
+      id: `blackout-${Date.now()}`,
+      date: newBlackoutDate.trim(),
+      reason: newBlackoutReason.trim() || 'Meeting Cancelled / Rescheduled',
+      rule_id: newBlackoutRuleId,
+    };
+    const nextBlackouts = [...blackoutDates, newEntry];
+    setBlackoutDates(nextBlackouts);
+    setNewBlackoutDate('');
+    setNewBlackoutReason('');
+    setNewBlackoutRuleId('all');
+    const res = await persistCalendar({ blackout_dates: nextBlackouts });
+    if (res) onNotify('Blackout date added and saved');
+    else onNotify('Failed to save blackout date', true);
+  };
+
+  const handleDeleteBlackout = async (id: string) => {
+    const nextBlackouts = blackoutDates.filter((b) => b.id !== id);
+    setBlackoutDates(nextBlackouts);
+    const res = await persistCalendar({ blackout_dates: nextBlackouts });
+    if (res) onNotify('Blackout date removed');
+  };
+
+  const handleSaveEvent = async (savedEvent: CalendarEvent) => {
+    const exists = events.some((e) => e.id === savedEvent.id);
+    const nextEvents = exists
+      ? events.map((e) => (e.id === savedEvent.id ? savedEvent : e))
+      : [...events, savedEvent];
+    setEvents(nextEvents);
+    await persistCalendar({ events: nextEvents });
+    onNotify('Special event updated');
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    const nextEvents = events.filter((e) => e.id !== id);
+    setEvents(nextEvents);
+    await persistCalendar({ events: nextEvents });
+    onNotify('Special event removed');
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Monthly Review Prompt Banner */}
+      {needsMonthReview && (
+        <div className="rounded-3xl border border-amber-300 dark:border-amber-600/50 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex-shrink-0">
+              <Bell className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm sm:text-base text-zinc-950 dark:text-zinc-50">
+                🔔 Review Month Schedule ({currentYearMonth})
+              </h4>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                Please review this month&apos;s schedule preview below, reschedule or skip any occurrences, and confirm the month schedule.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleConfirmMonthReview}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 active:scale-95 disabled:opacity-50 flex-shrink-0 self-start sm:self-auto"
+          >
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
+            <span>Confirm &amp; Save Month Schedule</span>
+          </button>
+        </div>
+      )}
+
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+        <div>
+          <h2 className="text-base sm:text-lg font-bold text-zinc-950 dark:text-zinc-50 flex items-center gap-2">
+            <CalendarIcon className="w-5 h-5 text-amber-500" />
+            <span>Monthly Calendar &amp; Schedule Management</span>
+          </h2>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Manage meeting rules, monthly schedule overrides, blackout dates, and the flyer.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSaveAll}
+          disabled={saving}
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-50 self-start sm:self-auto"
+        >
+          {saving ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              <span>Save Calendar &amp; Schedule</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Prominent Monthly Calendar Flyer & Default View Card */}
+      <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:p-5 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 flex items-center gap-2">
+              <span>🖼️</span>
+              <span>Monthly Calendar Flyer &amp; Default View</span>
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Upload this month&apos;s flyer poster and toggle which view regular members see first.
+            </p>
+          </div>
+
+          {/* Default View Toggle */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => handleToggleDefaultView('dynamic')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                defaultView === 'dynamic'
+                  ? 'bg-white dark:bg-zinc-900 text-amber-600 dark:text-amber-400 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+              }`}
+            >
+              <span>📅 Dynamic Calendar</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleToggleDefaultView('flyer')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                defaultView === 'flyer'
+                  ? 'bg-white dark:bg-zinc-900 text-amber-600 dark:text-amber-400 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+              }`}
+            >
+              <span>🖼️ Monthly Flyer</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Flyer Upload & URL Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+          <div className="lg:col-span-7 space-y-3">
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Flyer Image URL or Upload
+            </label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={imageUrls.en || ''}
+                onChange={(e) => handleUrlChange(e.target.value)}
+                onBlur={handleUrlBlur}
+                placeholder="https://... image URL (or upload below)"
+                className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                accept="image/*"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-xs transition-colors disabled:opacity-50 flex-shrink-0"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Monthly Flyer Image</span>
+                  </>
+                )}
+              </button>
+            </div>
+            {imageUrls.en && (
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleRemoveFlyer}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs font-semibold transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Remove Flyer</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Live Thumbnail Preview */}
+          <div className="lg:col-span-5">
+            {imageUrls.en ? (
+              <div className="relative rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-950 max-h-48 flex items-center justify-center group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrls.en}
+                  alt="Monthly Flyer Preview"
+                  className="w-full h-auto max-h-48 object-contain"
+                />
+              </div>
+            ) : (
+              <div className="h-28 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-600 p-4 text-center">
+                <Upload className="w-5 h-5 mb-1 opacity-50" />
+                <span className="text-xs">No monthly flyer uploaded yet</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+
+      {/* Subtabs */}
+      <div className="flex overflow-x-auto no-scrollbar gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('schedule')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            activeSubTab === 'schedule'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400'
+          }`}
+        >
+          <span>📅</span>
+          <span>Current Month Schedule ({currentMonthSchedule.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('recurring')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            activeSubTab === 'recurring'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400'
+          }`}
+        >
+          <span>🔄</span>
+          <span>Meeting Rules &amp; Series ({recurringRules.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('blackout')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            activeSubTab === 'blackout'
+              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400'
+          }`}
+        >
+          <span>🚫</span>
+          <span>Blackout Dates ({blackoutDates.length})</span>
+        </button>
+      </div>
+
+      {/* SUB-SECTION 0: CURRENT-MONTH SCHEDULE PREVIEW & INSTANCE OVERRIDES */}
+      {activeSubTab === 'schedule' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
+                Current Month Schedule ({currentYearMonth})
+              </h3>
+              <p className="text-xs text-zinc-500">
+                1-tap override or reschedule any specific date occurrence without affecting future months.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setEditingRule(null); setRuleModalOpen(true); }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs self-start sm:self-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Meeting Rule</span>
+            </button>
+          </div>
+
+          {currentMonthSchedule.length === 0 ? (
+            <div className="p-8 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/40">
+              <p className="text-xs text-zinc-500 mb-2">No meetings generated for this month.</p>
+              <button
+                type="button"
+                onClick={() => { setEditingRule(null); setRuleModalOpen(true); }}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-bold"
+              >
+                Create your first meeting rule
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {currentMonthSchedule.map((ev) => {
+                const titleStr = getLocalized(ev.title);
+                const hasException = Boolean(ev.is_modified);
+
+                return (
+                  <div
+                    key={ev.id}
+                    className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                      hasException
+                        ? 'border-purple-300 dark:border-purple-800/60 bg-purple-50/40 dark:bg-purple-950/20 shadow-xs'
+                        : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300">
+                          {ev.date}
+                        </span>
+                        {ev.time && (
+                          <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-zinc-400" />
+                            <span>{ev.time}</span>
+                          </span>
+                        )}
+                        {hasException && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 dark:bg-purple-900/60 dark:text-purple-200">
+                            Rescheduled ({ev.reason || 'Overridden'})
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{titleStr}</h4>
+                      <div className="flex items-center gap-3 mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 flex-wrap">
+                        {ev.speaker && <span>🎙️ {ev.speaker}</span>}
+                        {ev.venue && <span>📍 {ev.venue}</span>}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenOverride(ev)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-all active:scale-95"
+                      >
+                        <Edit className="w-3 h-3 text-amber-500" />
+                        <span>Reschedule / Edit</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSkipInstance(ev)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-xs font-bold transition-all active:scale-95"
+                      >
+                        <Ban className="w-3 h-3" />
+                        <span>Skip Date</span>
+                      </button>
+
+                      {hasException && ev.original_date && (
+                        <button
+                          type="button"
+                          onClick={() => handleRestoreInstance(ev.series_id || ev.rule_id || '', ev.original_date!)}
+                          title="Restore original rule"
+                          className="p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SUB-SECTION 1: RECURRING MEETINGS */}
+      {activeSubTab === 'recurring' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Meeting Rules &amp; Series</h3>
+              <p className="text-xs text-zinc-500">
+                Meeting rules that expand automatically into monthly calendar schedules.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingRule(null);
+                setRuleModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Meeting Rule</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {recurringRules.map((rule) => {
+              const freqLabel =
+                rule.frequency === 'daily'
+                  ? 'Daily'
+                  : rule.frequency === 'weekly'
+                  ? `Weekly (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
+                  : rule.frequency === 'monthly_nth_weekday'
+                  ? `Monthly (${rule.nth_week ?? 1}th ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
+                  : rule.frequency === 'monthly_date'
+                  ? `Monthly (Day ${rule.day_of_month ?? 15})`
+                  : `One-Time (${rule.date || 'Once'})`;
+
+              return (
+                <div
+                  key={rule.id}
+                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
+                    rule.is_active
+                      ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xs'
+                      : 'bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 opacity-60'
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                        {freqLabel}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleRuleActive(rule.id)}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
+                          rule.is_active
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            : 'bg-zinc-200 text-zinc-600 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-400'
+                        }`}
+                      >
+                        {rule.is_active ? 'Active' : 'Paused'}
+                      </button>
+                    </div>
+
+                    <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{rule.title}</h4>
+                    {rule.time && (
+                      <p className="text-xs text-zinc-500 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{rule.time}</span>
+                      </p>
+                    )}
+                    {rule.venue && (
+                      <p className="text-xs text-zinc-500 flex items-center gap-1 truncate">
+                        <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                        <span className="truncate">{rule.venue}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-end gap-1 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingRule(rule);
+                        setRuleModalOpen(true);
+                      }}
+                      className="p-1.5 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRule(rule.id)}
+                      className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* SUB-SECTION 2: BLACKOUT DATES */}
+      {activeSubTab === 'blackout' && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Blackout Dates &amp; Overrides</h3>
+            <p className="text-xs text-zinc-500">
+              Cancel or pause recurring meetings on specific holiday or special event dates.
+            </p>
+          </div>
+
+          <form onSubmit={handleAddBlackout} className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs flex flex-col sm:flex-row items-center gap-3">
+            <input
+              type="text"
+              required
+              value={newBlackoutDate}
+              onChange={(e) => setNewBlackoutDate(e.target.value)}
+              placeholder="Date (YYYY-MM-DD)"
+              className="w-full sm:w-40 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs font-mono"
+            />
+            <input
+              type="text"
+              value={newBlackoutReason}
+              onChange={(e) => setNewBlackoutReason(e.target.value)}
+              placeholder="Reason (e.g. Public Holiday, Rally)"
+              className="w-full sm:flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
+            />
+            <select
+              value={newBlackoutRuleId}
+              onChange={(e) => setNewBlackoutRuleId(e.target.value)}
+              className="w-full sm:w-48 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
+            >
+              <option value="all">All Recurring Meetings</option>
+              {recurringRules.map((r) => (
+                <option key={r.id} value={r.id}>{r.title}</option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 text-xs font-bold"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Blackout</span>
+            </button>
+          </form>
+
+          <div className="space-y-2">
+            {blackoutDates.length === 0 ? (
+              <div className="p-6 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800">
+                <p className="text-xs text-zinc-500">No blackout dates added.</p>
+              </div>
+            ) : (
+              blackoutDates.map((b) => {
+                const targetRule = recurringRules.find((r) => r.id === b.rule_id);
+                const targetText = b.rule_id === 'all' || !b.rule_id ? 'All Recurring Meetings' : targetRule?.title || b.rule_id;
+                return (
+                  <div key={b.id} className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-xs font-bold text-red-600 dark:text-red-400">{b.date}</span>
+                      <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{b.reason}</span>
+                      <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-500">{targetText}</span>
+                    </div>
+                    <button type="button" onClick={() => handleDeleteBlackout(b.id)} className="p-1 rounded text-red-500 hover:bg-red-50">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
+      <RecurringRuleModal
+        isOpen={ruleModalOpen}
+        onClose={() => setRuleModalOpen(false)}
+        onSave={handleSaveRule}
+        rule={editingRule}
+      />
+
+      <InstanceOverrideModal
+        isOpen={overrideModalOpen}
+        onClose={() => {
+          setOverrideModalOpen(false);
+          setEditingInstance(null);
+        }}
+        instance={editingInstance}
+        onSave={handleSaveException}
+      />
+    </div>
+  );
+}
+</file>
+
 <file path="src/components/ToolCard.tsx">
 'use client';
 
@@ -12028,18 +12094,14 @@ export function ToolCard({ tool }: ToolCardProps) {
                   <div className="h-full w-full bg-gradient-to-tr from-zinc-900 to-zinc-800" />
                 )}
 
-                <div className="absolute top-2.5 left-2.5 right-2.5 z-10 flex items-center justify-between pointer-events-none">
-                  {tool.is_featured ? (
+                {tool.is_featured && (
+                  <div className="absolute top-2.5 left-2.5 z-10 pointer-events-none">
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/95 px-2.5 py-0.5 text-[10px] font-black text-white shadow-sm backdrop-blur-xs">
                       <Sparkles className="h-3 w-3" />
                       <span>{t('badge_featured', 'Featured')}</span>
                     </span>
-                  ) : <span />}
-
-                  <span className="rounded-full bg-black/75 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-white backdrop-blur-xs">
-                    {displayLangBadge}
-                  </span>
-                </div>
+                  </div>
+                )}
 
                 <div className="absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover/thumb:bg-black/15">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-white shadow-xl shadow-red-950/40 transition-transform duration-200 group-hover/thumb:scale-110 active:scale-95">
@@ -12073,46 +12135,37 @@ export function ToolCard({ tool }: ToolCardProps) {
         )}
       </div>
 
-      {/* 1. YOUTUBE CONTENT BLOCK: TITLE, SPEAKER, DESCRIPTION, DIRECT EXTERNAL LINK */}
+      {/* 1. YOUTUBE CONTENT BLOCK: COMPACT TITLE, INLINE LINK, SPEAKER, DESCRIPTION */}
       {tool.type === 'youtube' && (
-        <div className="p-4 pb-2">
-          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className="rounded-full bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-              YouTube
-            </span>
-            <span className="rounded-full bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 text-[10px] font-bold">
-              {displayLangBadge}
-            </span>
+        <div className="px-3.5 py-2.5">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50 leading-snug flex-1">
+              {title}
+            </h3>
+            {url && (
+              <a
+                href={url.replace(/\s+/g, '')}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Watch on YouTube"
+                className="mt-0.5 flex-shrink-0 p-1 rounded-lg text-zinc-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                aria-label="Watch on YouTube"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
           </div>
 
-          <h3 className="text-base font-bold text-zinc-950 dark:text-zinc-50 leading-snug">
-            {title}
-          </h3>
-
           {tool.speaker_name && (
-            <p className="mt-1 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+            <p className="mt-0.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 truncate">
               🎙️ {tool.speaker_name}
             </p>
           )}
 
           {description && (
-            <p className="mt-1.5 text-xs text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed">
+            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">
               {description}
             </p>
-          )}
-
-          {url && (
-            <div className="mt-3">
-              <a
-                href={url.replace(/\s+/g, '')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/50 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 text-xs font-bold transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Open in YouTube</span>
-              </a>
-            </div>
           )}
         </div>
       )}

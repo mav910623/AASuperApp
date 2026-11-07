@@ -30,6 +30,7 @@ import {
   reorderSectionsAction,
   upsertToolAction,
   deleteToolAction,
+  reorderToolsAction,
 } from '@/app/actions/adminActions';
 import type { Section, Tool } from '@/types/app';
 
@@ -78,6 +79,40 @@ export function TabSectionsTools({
       onNotify('Sections reordered successfully');
     } else {
       onNotify(!res.success ? res.error : 'Failed to save order in database', true);
+    }
+  };
+
+  // Reorder tools within their section (Gap 1)
+  const handleMoveTool = async (tool: Tool, direction: 'up' | 'down') => {
+    const sectionTools = tools
+      .filter((t) => t.section_id === tool.section_id)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+    const index = sectionTools.findIndex((t) => t.id === tool.id);
+    if (index === -1) return;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= sectionTools.length) return;
+
+    const reordered = [...sectionTools];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, moved);
+
+    const updatedSectionTools = reordered.map((t, idx) => ({ ...t, sort_order: idx + 1 }));
+
+    setTools((prev) =>
+      prev.map((t) => {
+        const found = updatedSectionTools.find((u) => u.id === t.id);
+        return found || t;
+      })
+    );
+
+    const res = await reorderToolsAction(
+      updatedSectionTools.map((t) => ({ id: t.id, sort_order: t.sort_order }))
+    );
+    if (res.success) {
+      onNotify('Tool reordered successfully');
+    } else {
+      onNotify(!res.success ? res.error : 'Failed to save tool order', true);
     }
   };
 
@@ -411,6 +446,13 @@ export function TabSectionsTools({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {filteredTools.map((tool) => {
                   const section = sections.find((s) => s.id === tool.section_id);
+                  const sectionTools = tools
+                    .filter((t) => t.section_id === tool.section_id)
+                    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+                  const sIdx = sectionTools.findIndex((t) => t.id === tool.id);
+                  const canMoveUp = sIdx > 0;
+                  const canMoveDown = sIdx !== -1 && sIdx < sectionTools.length - 1;
+
                   return (
                     <ToolAdminCard
                       key={tool.id}
@@ -423,6 +465,10 @@ export function TabSectionsTools({
                         setToolModalOpen(true);
                       }}
                       onDelete={handleDeleteTool}
+                      onMoveUp={() => handleMoveTool(tool, 'up')}
+                      onMoveDown={() => handleMoveTool(tool, 'down')}
+                      canMoveUp={canMoveUp}
+                      canMoveDown={canMoveDown}
                     />
                   );
                 })}

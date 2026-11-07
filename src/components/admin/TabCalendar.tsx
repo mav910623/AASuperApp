@@ -16,6 +16,10 @@ import {
   RotateCcw,
   Bell,
   ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  Video,
 } from 'lucide-react';
 import { RecurringRuleModal } from './RecurringRuleModal';
 import { InstanceOverrideModal } from './InstanceOverrideModal';
@@ -33,6 +37,188 @@ import {
 } from '@/lib/calendarGenerator';
 import { useApp } from '@/context/AppContext';
 
+interface MeetingRuleCardProps {
+  rule: MeetingSeries;
+  onToggleActive: (id: string) => void;
+  onEdit: (rule: MeetingSeries) => void;
+  onDelete: (id: string) => void;
+}
+
+function MeetingRuleCard({ rule, onToggleActive, onEdit, onDelete }: MeetingRuleCardProps) {
+  const isDaily = rule.frequency === 'daily';
+  const freqLabel =
+    rule.frequency === 'daily'
+      ? '🔁 Daily'
+      : rule.frequency === 'weekly'
+      ? `Weekly (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
+      : rule.frequency === 'monthly_nth_weekday'
+      ? `Monthly (${rule.nth_week ?? 1}th ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
+      : rule.frequency === 'monthly_date'
+      ? `Monthly (Day ${rule.day_of_month ?? 15})`
+      : `One-Time (${rule.date || 'Once'})`;
+
+  const isHybrid = Boolean(rule.zoom_link && (rule.location_address || rule.venue));
+
+  return (
+    <div
+      className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
+        rule.is_active
+          ? 'bg-zinc-50/50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-800 shadow-2xs hover:shadow-xs'
+          : 'bg-zinc-100/60 dark:bg-zinc-900/40 border-zinc-200/60 dark:border-zinc-800/50 opacity-60'
+      }`}
+    >
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                isDaily ? 'bg-amber-500 text-white shadow-2xs' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+              }`}
+            >
+              {freqLabel}
+            </span>
+            {isHybrid && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                <Zap className="w-2.5 h-2.5" />
+                <span>Hybrid</span>
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onToggleActive(rule.id)}
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
+              rule.is_active
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
+                : 'bg-zinc-200 text-zinc-600 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-400'
+            }`}
+          >
+            {rule.is_active ? 'Active' : 'Paused'}
+          </button>
+        </div>
+
+        <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{rule.title}</h4>
+        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap">
+          {rule.time && (
+            <span className="flex items-center gap-1 font-semibold text-zinc-700 dark:text-zinc-300">
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              <span>{rule.time}</span>
+            </span>
+          )}
+          {rule.speaker && <span>🎙️ {rule.speaker}</span>}
+          {rule.venue && <span>📍 {rule.venue}</span>}
+          {rule.zoom_link && !rule.venue && <span>💻 Zoom Online</span>}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end gap-1 pt-2 border-t border-zinc-200/60 dark:border-zinc-800">
+        <button
+          type="button"
+          onClick={() => onEdit(rule)}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 transition-colors"
+        >
+          <Edit className="w-3.5 h-3.5 text-amber-500" />
+          <span>Edit</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(rule.id)}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface ScheduleOccurrenceRowProps {
+  ev: GeneratedScheduleEvent;
+  titleStr: string;
+  onOpenOverride: (ev: GeneratedScheduleEvent) => void;
+  onSkip: (ev: GeneratedScheduleEvent) => void;
+  onRestore: (seriesId: string, originalDate: string) => void;
+}
+
+function ScheduleOccurrenceRow({
+  ev,
+  titleStr,
+  onOpenOverride,
+  onSkip,
+  onRestore,
+}: ScheduleOccurrenceRowProps) {
+  const hasException = Boolean(ev.is_modified);
+
+  return (
+    <div
+      className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+        hasException
+          ? 'border-purple-300 dark:border-purple-800/60 bg-purple-50/40 dark:bg-purple-950/20 shadow-xs'
+          : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 shadow-2xs hover:shadow-xs'
+      }`}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap mb-1">
+          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300">
+            {ev.date}
+          </span>
+          {ev.time && (
+            <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold flex items-center gap-1">
+              <Clock className="w-3 h-3 text-zinc-400" />
+              <span>{ev.time}</span>
+            </span>
+          )}
+          {hasException && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 dark:bg-purple-900/60 dark:text-purple-200">
+              Rescheduled ({ev.reason || 'Overridden'})
+            </span>
+          )}
+        </div>
+
+        <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{titleStr}</h4>
+        <div className="flex items-center gap-3 mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 flex-wrap">
+          {ev.speaker && <span>🎙️ {ev.speaker}</span>}
+          {ev.venue && <span>📍 {ev.venue}</span>}
+          {ev.zoom_link && !ev.venue && <span>💻 Zoom Online</span>}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+        <button
+          type="button"
+          onClick={() => onOpenOverride(ev)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-all active:scale-95"
+        >
+          <Edit className="w-3 h-3 text-amber-500" />
+          <span>Reschedule / Edit</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onSkip(ev)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-xs font-bold transition-all active:scale-95"
+        >
+          <Ban className="w-3 h-3" />
+          <span>Skip Date</span>
+        </button>
+
+        {hasException && ev.original_date && (
+          <button
+            type="button"
+            onClick={() => onRestore(ev.series_id || ev.rule_id || '', ev.original_date!)}
+            title="Restore original date"
+            className="p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface TabCalendarProps {
   calendar: TeamCalendar;
   setCalendar: React.Dispatch<React.SetStateAction<TeamCalendar>>;
@@ -48,7 +234,8 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
   const currentYearMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
   const needsMonthReview = calendar.last_reviewed_month !== currentYearMonth;
 
-  const [activeSubTab, setActiveSubTab] = useState<'schedule' | 'recurring' | 'blackout'>('schedule');
+  // Single-view layout state
+  const [showOverridesAccordion, setShowOverridesAccordion] = useState(false);
 
   const [monthLabels, setMonthLabels] = useState(calendar.month_label || { en: '', bm: '', cn: '', ta: '' });
   const [imageUrls, setImageUrls] = useState(calendar.image_url || { en: '', bm: '', cn: '', ta: '' });
@@ -75,6 +262,7 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
       blackout_dates: updates.blackout_dates ?? blackoutDates,
       events: updates.events ?? events,
       last_reviewed_month: updates.last_reviewed_month ?? calendar.last_reviewed_month ?? currentYearMonth,
+      flyer_uploaded_at: updates.flyer_uploaded_at !== undefined ? updates.flyer_uploaded_at : calendar.flyer_uploaded_at,
     };
 
     const res = await updateCalendarAction(payload);
@@ -102,7 +290,7 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Current month schedule preview
+  // Current month schedule preview (excluding daily spam, displayed separately)
   const currentMonthSchedule = useMemo(() => {
     return generateMonthSchedule(
       currentYear,
@@ -110,9 +298,15 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
       recurringRules,
       blackoutDates,
       events,
-      exceptions
+      exceptions,
+      { excludeDaily: true }
     );
   }, [currentYear, currentMonth, recurringRules, blackoutDates, events, exceptions]);
+
+  // Active Daily Rules
+  const dailyRules = useMemo(() => {
+    return recurringRules.filter((r) => r.is_active && r.frequency === 'daily');
+  }, [recurringRules]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -132,7 +326,10 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
           ta: res.url,
         };
         setImageUrls(nextImages);
-        const saved = await persistCalendar({ image_url: nextImages });
+        const saved = await persistCalendar({
+          image_url: nextImages,
+          flyer_uploaded_at: new Date().toISOString(),
+        });
         if (saved) {
           onNotify('Flyer image uploaded and saved successfully');
         } else {
@@ -152,7 +349,10 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
   const handleRemoveFlyer = async () => {
     const emptyImages = { en: '', bm: '', cn: '', ta: '' };
     setImageUrls(emptyImages);
-    const saved = await persistCalendar({ image_url: emptyImages });
+    const saved = await persistCalendar({
+      image_url: emptyImages,
+      flyer_uploaded_at: undefined,
+    });
     if (saved) onNotify('Monthly flyer removed and saved');
   };
 
@@ -523,165 +723,23 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
       </div>
 
 
-      {/* Subtabs */}
-      <div className="flex overflow-x-auto no-scrollbar gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('schedule')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'schedule'
-              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400'
-          }`}
-        >
-          <span>📅</span>
-          <span>Current Month Schedule ({currentMonthSchedule.length})</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('recurring')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'recurring'
-              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400'
-          }`}
-        >
-          <span>🔄</span>
-          <span>Meeting Rules &amp; Series ({recurringRules.length})</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('blackout')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeSubTab === 'blackout'
-              ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-zinc-50 shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400'
-          }`}
-        >
-          <span>🚫</span>
-          <span>Blackout Dates ({blackoutDates.length})</span>
-        </button>
-      </div>
+      {/* 2-COLUMN LAYOUT: CARD 2 (LEFT) & CARD 3 (RIGHT) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-      {/* SUB-SECTION 0: CURRENT-MONTH SCHEDULE PREVIEW & INSTANCE OVERRIDES */}
-      {activeSubTab === 'schedule' && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        {/* CARD 2 (Left Column): Recurring & One-Time Meetings Setup */}
+        <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
             <div>
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
-                Current Month Schedule ({currentYearMonth})
-              </h3>
-              <p className="text-xs text-zinc-500">
-                1-tap override or reschedule any specific date occurrence without affecting future months.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => { setEditingRule(null); setRuleModalOpen(true); }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs self-start sm:self-auto"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Meeting Rule</span>
-            </button>
-          </div>
-
-          {currentMonthSchedule.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/40">
-              <p className="text-xs text-zinc-500 mb-2">No meetings generated for this month.</p>
-              <button
-                type="button"
-                onClick={() => { setEditingRule(null); setRuleModalOpen(true); }}
-                className="px-3.5 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-bold"
-              >
-                Create your first meeting rule
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2.5">
-              {currentMonthSchedule.map((ev) => {
-                const titleStr = getLocalized(ev.title);
-                const hasException = Boolean(ev.is_modified);
-
-                return (
-                  <div
-                    key={ev.id}
-                    className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      hasException
-                        ? 'border-purple-300 dark:border-purple-800/60 bg-purple-50/40 dark:bg-purple-950/20 shadow-xs'
-                        : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300">
-                          {ev.date}
-                        </span>
-                        {ev.time && (
-                          <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-zinc-400" />
-                            <span>{ev.time}</span>
-                          </span>
-                        )}
-                        {hasException && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 dark:bg-purple-900/60 dark:text-purple-200">
-                            Rescheduled ({ev.reason || 'Overridden'})
-                          </span>
-                        )}
-                      </div>
-
-                      <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{titleStr}</h4>
-                      <div className="flex items-center gap-3 mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 flex-wrap">
-                        {ev.speaker && <span>🎙️ {ev.speaker}</span>}
-                        {ev.venue && <span>📍 {ev.venue}</span>}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenOverride(ev)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-all active:scale-95"
-                      >
-                        <Edit className="w-3 h-3 text-amber-500" />
-                        <span>Reschedule / Edit</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleSkipInstance(ev)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-xs font-bold transition-all active:scale-95"
-                      >
-                        <Ban className="w-3 h-3" />
-                        <span>Skip Date</span>
-                      </button>
-
-                      {hasException && ev.original_date && (
-                        <button
-                          type="button"
-                          onClick={() => handleRestoreInstance(ev.series_id || ev.rule_id || '', ev.original_date!)}
-                          title="Restore original rule"
-                          className="p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* SUB-SECTION 1: RECURRING MEETINGS */}
-      {activeSubTab === 'recurring' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Meeting Rules &amp; Series</h3>
-              <p className="text-xs text-zinc-500">
-                Meeting rules that expand automatically into monthly calendar schedules.
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
+                  🔄 Meeting Rules &amp; Series
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                  {recurringRules.length}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                Set up Daily, Weekly, Monthly, and One-Time meeting rules.
               </p>
             </div>
             <button
@@ -690,165 +748,199 @@ export function TabCalendar({ calendar, setCalendar, onNotify }: TabCalendarProp
                 setEditingRule(null);
                 setRuleModalOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Add Meeting Rule</span>
+              <span>Add Meeting</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {recurringRules.map((rule) => {
-              const freqLabel =
-                rule.frequency === 'daily'
-                  ? 'Daily'
-                  : rule.frequency === 'weekly'
-                  ? `Weekly (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
-                  : rule.frequency === 'monthly_nth_weekday'
-                  ? `Monthly (${rule.nth_week ?? 1}th ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][rule.day_of_week ?? 0]})`
-                  : rule.frequency === 'monthly_date'
-                  ? `Monthly (Day ${rule.day_of_month ?? 15})`
-                  : `One-Time (${rule.date || 'Once'})`;
-
-              return (
-                <div
-                  key={rule.id}
-                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
-                    rule.is_active
-                      ? 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xs'
-                      : 'bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 opacity-60'
-                  }`}
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                        {freqLabel}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleRuleActive(rule.id)}
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
-                          rule.is_active
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
-                            : 'bg-zinc-200 text-zinc-600 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-400'
-                        }`}
-                      >
-                        {rule.is_active ? 'Active' : 'Paused'}
-                      </button>
-                    </div>
-
-                    <h4 className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{rule.title}</h4>
-                    {rule.time && (
-                      <p className="text-xs text-zinc-500 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{rule.time}</span>
-                      </p>
-                    )}
-                    {rule.venue && (
-                      <p className="text-xs text-zinc-500 flex items-center gap-1 truncate">
-                        <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-                        <span className="truncate">{rule.venue}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-end gap-1 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingRule(rule);
-                        setRuleModalOpen(true);
-                      }}
-                      className="p-1.5 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteRule(rule.id)}
-                      className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* SUB-SECTION 2: BLACKOUT DATES */}
-      {activeSubTab === 'blackout' && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">Blackout Dates &amp; Overrides</h3>
-            <p className="text-xs text-zinc-500">
-              Cancel or pause recurring meetings on specific holiday or special event dates.
-            </p>
-          </div>
-
-          <form onSubmit={handleAddBlackout} className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs flex flex-col sm:flex-row items-center gap-3">
-            <input
-              type="text"
-              required
-              value={newBlackoutDate}
-              onChange={(e) => setNewBlackoutDate(e.target.value)}
-              placeholder="Date (YYYY-MM-DD)"
-              className="w-full sm:w-40 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs font-mono"
-            />
-            <input
-              type="text"
-              value={newBlackoutReason}
-              onChange={(e) => setNewBlackoutReason(e.target.value)}
-              placeholder="Reason (e.g. Public Holiday, Rally)"
-              className="w-full sm:flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
-            />
-            <select
-              value={newBlackoutRuleId}
-              onChange={(e) => setNewBlackoutRuleId(e.target.value)}
-              className="w-full sm:w-48 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
-            >
-              <option value="all">All Recurring Meetings</option>
-              {recurringRules.map((r) => (
-                <option key={r.id} value={r.id}>{r.title}</option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 text-xs font-bold"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Blackout</span>
-            </button>
-          </form>
-
-          <div className="space-y-2">
-            {blackoutDates.length === 0 ? (
-              <div className="p-6 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800">
-                <p className="text-xs text-zinc-500">No blackout dates added.</p>
+          <div className="space-y-3">
+            {recurringRules.length === 0 ? (
+              <div className="p-8 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500">
+                No meeting rules set up yet. Click &quot;Add Meeting&quot; above to create one.
               </div>
             ) : (
-              blackoutDates.map((b) => {
-                const targetRule = recurringRules.find((r) => r.id === b.rule_id);
-                const targetText = b.rule_id === 'all' || !b.rule_id ? 'All Recurring Meetings' : targetRule?.title || b.rule_id;
-                return (
-                  <div key={b.id} className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs font-bold text-red-600 dark:text-red-400">{b.date}</span>
-                      <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{b.reason}</span>
-                      <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-500">{targetText}</span>
-                    </div>
-                    <button type="button" onClick={() => handleDeleteBlackout(b.id)} className="p-1 rounded text-red-500 hover:bg-red-50">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                );
-              })
+              recurringRules.map((rule) => (
+                <MeetingRuleCard
+                  key={rule.id}
+                  rule={rule}
+                  onToggleActive={handleToggleRuleActive}
+                  onEdit={(r) => {
+                    setEditingRule(r);
+                    setRuleModalOpen(true);
+                  }}
+                  onDelete={handleDeleteRule}
+                />
+              ))
             )}
           </div>
         </div>
-      )}
+
+        {/* CARD 3 (Right Column): This Month's Schedule & Date Overrides */}
+        <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-zinc-950 dark:text-zinc-50">
+                  📅 This Month&apos;s Schedule ({currentYearMonth})
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                  {currentMonthSchedule.length}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                Reschedule or skip any date for this month without affecting future months.
+              </p>
+            </div>
+          </div>
+
+          {/* Active Daily Meetings 1-Line Callout Banner */}
+          {dailyRules.length > 0 && (
+            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-base leading-none">🔁</span>
+                <span className="font-bold text-amber-900 dark:text-amber-200 truncate">
+                  Daily Meetings ({dailyRules.length}):
+                </span>
+                <span className="text-amber-800 dark:text-amber-300 truncate">
+                  {dailyRules.map((r) => `${r.title} (${r.time})`).join(', ')}
+                </span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white flex-shrink-0">
+                Runs Daily
+              </span>
+            </div>
+          )}
+
+          {/* Chronological List of Generated Dates (Excludes Daily Spam) */}
+          <div className="space-y-2.5">
+            {currentMonthSchedule.length === 0 ? (
+              <div className="p-8 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500">
+                No meeting dates generated for this month.
+              </div>
+            ) : (
+              currentMonthSchedule.map((ev) => (
+                <ScheduleOccurrenceRow
+                  key={ev.id}
+                  ev={ev}
+                  titleStr={getLocalized(ev.title)}
+                  onOpenOverride={handleOpenOverride}
+                  onSkip={handleSkipInstance}
+                  onRestore={handleRestoreInstance}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Collapsible Active Overrides & Blackout Dates at Bottom */}
+          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+            <button
+              type="button"
+              onClick={() => setShowOverridesAccordion((prev) => !prev)}
+              className="w-full flex items-center justify-between p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span>🚫</span>
+                <span>Active Date Overrides &amp; Blackouts ({exceptions.length + blackoutDates.length})</span>
+              </div>
+              {showOverridesAccordion ? (
+                <ChevronUp className="w-4 h-4 text-zinc-400" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-zinc-400" />
+              )}
+            </button>
+
+            {showOverridesAccordion && (
+              <div className="mt-3 space-y-3 pl-1 pr-1 animate-in fade-in duration-150">
+                {/* Inline Blackout Form */}
+                <form
+                  onSubmit={handleAddBlackout}
+                  className="p-3 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex flex-col sm:flex-row items-center gap-2 shadow-2xs"
+                >
+                  <input
+                    type="date"
+                    required
+                    value={newBlackoutDate}
+                    onChange={(e) => setNewBlackoutDate(e.target.value)}
+                    className="w-full sm:w-36 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 px-2.5 py-1.5 text-xs font-mono"
+                  />
+                  <input
+                    type="text"
+                    value={newBlackoutReason}
+                    onChange={(e) => setNewBlackoutReason(e.target.value)}
+                    placeholder="Reason (e.g. Public Holiday)"
+                    className="w-full sm:flex-1 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 px-2.5 py-1.5 text-xs"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 text-xs font-bold transition-all shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Blackout</span>
+                  </button>
+                </form>
+
+                {/* Overrides & Blackouts List */}
+                <div className="space-y-2">
+                  {exceptions.map((ex) => (
+                    <div
+                      key={ex.id}
+                      className="p-2.5 rounded-xl border border-purple-200 dark:border-purple-900/60 bg-purple-50/50 dark:bg-purple-950/30 flex items-center justify-between gap-2 text-xs"
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="font-mono font-bold text-purple-700 dark:text-purple-300">
+                          {ex.original_date} {ex.new_date ? `→ ${ex.new_date}` : '(Skipped)'}
+                        </span>
+                        <span className="text-zinc-600 dark:text-zinc-400 truncate">
+                          {ex.reason || 'Override'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreInstance(ex.series_id, ex.original_date)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Restore</span>
+                      </button>
+                    </div>
+                  ))}
+
+                  {blackoutDates.map((b) => (
+                    <div
+                      key={b.id}
+                      className="p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between gap-2 text-xs"
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="font-mono font-bold text-red-600 dark:text-red-400">
+                          {b.date}
+                        </span>
+                        <span className="text-zinc-600 dark:text-zinc-400 truncate">
+                          {b.reason}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBlackout(b.id)}
+                        className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {exceptions.length === 0 && blackoutDates.length === 0 && (
+                    <p className="text-center py-3 text-xs text-zinc-500">
+                      No active overrides or blackout dates.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Modals */}
       <RecurringRuleModal

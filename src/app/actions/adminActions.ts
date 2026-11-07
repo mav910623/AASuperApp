@@ -644,6 +644,52 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionRespo
 // 3. ROLE-GUARDED ACTIONS: ADMIN AND SUPERADMIN ONLY
 // =============================================================================
 
+/**
+ * Deletes calendar flyer/event files older than 60 days that are not referenced by active tools.
+ */
+async function cleanupOldStorageFiles(client: any): Promise<void> {
+  try {
+    const sixtyDaysAgo = Date.now() - 60 * 24 * 60 * 60 * 1000;
+    const { data: files, error: listError } = await client.storage.from('media').list('uploads');
+    if (listError || !files || files.length === 0) return;
+
+    // Fetch active tools thumbnail_url and url to protect tools media
+    const { data: activeTools } = await client.from('tools').select('thumbnail_url, url');
+    const referencedPatterns = new Set<string>();
+    (activeTools || []).forEach((t: any) => {
+      if (t.thumbnail_url) referencedPatterns.add(t.thumbnail_url);
+      if (t.url) {
+        if (typeof t.url === 'string') referencedPatterns.add(t.url);
+        else if (typeof t.url === 'object' && t.url !== null) {
+          Object.values(t.url).forEach((u: any) => {
+            if (typeof u === 'string') referencedPatterns.add(u);
+          });
+        }
+      }
+    });
+
+    const filesToDelete: string[] = [];
+    for (const file of files) {
+      const match = file.name.match(/^(\d+)_/);
+      if (match) {
+        const fileTimestamp = parseInt(match[1], 10);
+        if (!isNaN(fileTimestamp) && fileTimestamp < sixtyDaysAgo) {
+          const isReferenced = Array.from(referencedPatterns).some((pat) => pat.includes(file.name));
+          if (!isReferenced) {
+            filesToDelete.push(`uploads/${file.name}`);
+          }
+        }
+      }
+    }
+
+    if (filesToDelete.length > 0) {
+      await client.storage.from('media').remove(filesToDelete);
+    }
+  } catch (err) {
+    console.warn('cleanupOldStorageFiles non-critical warning:', err);
+  }
+}
+
 export async function updateCalendarAction(
   calendarData: Partial<TeamCalendar>
 ): Promise<ActionResponse<TeamCalendar>> {
@@ -651,8 +697,9 @@ export async function updateCalendarAction(
     await requireSession(['editor', 'admin', 'superadmin']);
     const client = getAdminClient();
 
-    // Auto-cleanup records older than 2 months prior
+    // Auto-cleanup DB records and storage files older than 2 months
     const cleanedCalendar = pruneCalendarData(calendarData);
+    await cleanupOldStorageFiles(client);
 
     const recurringRules = Array.isArray(cleanedCalendar.recurring_rules)
       ? cleanedCalendar.recurring_rules

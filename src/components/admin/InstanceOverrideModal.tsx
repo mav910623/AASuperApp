@@ -26,7 +26,8 @@ export function InstanceOverrideModal({
   const [title, setTitle] = useState('');
   const [speaker, setSpeaker] = useState('');
   const [venue, setVenue] = useState('');
-  const [addressOrLink, setAddressOrLink] = useState('');
+  const [zoomLink, setZoomLink] = useState('');
+  const [locationAddress, setLocationAddress] = useState('');
   const [reason, setReason] = useState('');
 
   useEffect(() => {
@@ -36,7 +37,9 @@ export function InstanceOverrideModal({
       setTitle(getLocalized(instance.title) || '');
       setSpeaker(instance.speaker || '');
       setVenue(instance.venue || '');
-      setAddressOrLink(instance.location_or_link || '');
+      const isHttp = instance.location_or_link?.startsWith('http');
+      setZoomLink(instance.zoom_link || (isHttp ? instance.location_or_link : ''));
+      setLocationAddress(instance.location_address || (!isHttp ? instance.location_or_link : ''));
       setReason(instance.reason || 'Rescheduled for this month');
     }
   }, [instance, getLocalized, isOpen]);
@@ -47,6 +50,10 @@ export function InstanceOverrideModal({
     e.preventDefault();
     if (!targetDate.trim()) return;
 
+    const cleanZoom = zoomLink.trim();
+    const cleanLoc = locationAddress.trim();
+    const cleanVenue = venue.trim();
+
     const exception: MeetingException = {
       id: `ex-${Date.now()}`,
       series_id: instance.series_id || instance.rule_id || 'all',
@@ -56,8 +63,10 @@ export function InstanceOverrideModal({
       new_time: time.trim() || undefined,
       new_title: title.trim() || undefined,
       new_speaker: speaker.trim() || undefined,
-      new_venue: venue.trim() || undefined,
-      new_address_or_link: addressOrLink.trim() || undefined,
+      new_venue: cleanVenue || undefined,
+      new_zoom_link: cleanZoom || undefined,
+      new_location_address: cleanLoc || undefined,
+      new_address_or_link: cleanZoom || cleanLoc || cleanVenue || undefined,
       reason: reason.trim() || undefined,
     };
 
@@ -151,28 +160,58 @@ export function InstanceOverrideModal({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Venue
-            </label>
-            <input
-              type="text"
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
-            />
-          </div>
+          {/* Hybrid Meeting / Location Details */}
+          <div className="space-y-3 p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/70">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                📍 Location & Meeting Links
+              </span>
+              {zoomLink && (locationAddress || venue) && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  ⚡ Hybrid Meeting
+                </span>
+              )}
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-              Map Address / Zoom Link
-            </label>
-            <input
-              type="text"
-              value={addressOrLink}
-              onChange={(e) => setAddressOrLink(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-xs"
-            />
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                Online Zoom / Meeting URL
+              </label>
+              <input
+                type="text"
+                value={zoomLink}
+                onChange={(e) => setZoomLink(e.target.value)}
+                placeholder="https://zoom.us/j/... or online meeting link"
+                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  Venue Name
+                </label>
+                <input
+                  type="text"
+                  value={venue}
+                  onChange={(e) => setVenue(e.target.value)}
+                  placeholder="e.g. Nu Skin Plaza KL"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  Physical Venue Address
+                </label>
+                <input
+                  type="text"
+                  value={locationAddress}
+                  onChange={(e) => setLocationAddress(e.target.value)}
+                  placeholder="e.g. Jalan Ampang, KL (for Maps/Waze)"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-xs"
+                />
+              </div>
+            </div>
           </div>
 
           <div>

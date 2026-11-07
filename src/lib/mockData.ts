@@ -97,7 +97,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "COEV Rayne",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -114,10 +114,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/xEjv9DB6HEM",
+      "bm": "https://youtu.be/xEjv9DB6HEM",
+      "cn": "https://youtu.be/xEjv9DB6HEM",
+      "ta": "https://youtu.be/xEjv9DB6HEM"
     },
     "whatsapp_script": {
       "en": "Check out \"W.O.W (KL) - COEV Rayne\" by COEV Rayne:",
@@ -147,7 +147,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "AA Team",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -164,10 +164,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/UJkZIH3OHbo",
+      "bm": "https://youtu.be/UJkZIH3OHbo",
+      "cn": "https://youtu.be/UJkZIH3OHbo",
+      "ta": "https://youtu.be/UJkZIH3OHbo"
     },
     "whatsapp_script": {
       "en": "Check out \"Copycat Marketing\" by AA Team:",
@@ -197,7 +197,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "AA Team",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -214,10 +214,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/vvlsVBL_Ovk",
+      "bm": "https://youtu.be/vvlsVBL_Ovk",
+      "cn": "https://youtu.be/vvlsVBL_Ovk",
+      "ta": "https://youtu.be/vvlsVBL_Ovk"
     },
     "whatsapp_script": {
       "en": "Check out \"Parable of Pipeline\" by AA Team:",
@@ -247,7 +247,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Ashley",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -264,10 +264,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/IskgeQIaHQ",
+      "bm": "https://youtu.be/IskgeQIaHQ",
+      "cn": "https://youtu.be/IskgeQIaHQ",
+      "ta": "https://youtu.be/IskgeQIaHQ"
     },
     "whatsapp_script": {
       "en": "Check out \"How to present PRYSM business opportunity - Ashley\" by Ashley:",
@@ -314,10 +314,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      "bm": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      "cn": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      "ta": ""
+      "en": "https://drive.google.com/file/d/1TL49UZax0mdLScUIKyvmS0e1kbtiH4xl/view?usp=drivesdk",
+      "bm": "https://drive.google.com/file/d/1TL49UZax0mdLScUIKyvmS0e1kbtiH4xl/view?usp=drivesdk",
+      "cn": "https://drive.google.com/file/d/1TL49UZax0mdLScUIKyvmS0e1kbtiH4xl/view?usp=drivesdk",
+      "ta": "https://drive.google.com/file/d/1TL49UZax0mdLScUIKyvmS0e1kbtiH4xl/view?usp=drivesdk"
     },
     "whatsapp_script": {
       "en": "Check out \"The Business School (PDF) - Robert Kiyosaki\" by Robert Kiyosaki:",
@@ -364,10 +364,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://soundcloud.com/sc-recordings/sets/audio-recordings",
-      "bm": "https://soundcloud.com/sc-recordings/sets/audio-recordings",
-      "cn": "https://soundcloud.com/sc-recordings/sets/audio-recordings",
-      "ta": ""
+      "en": "https://on.soundcloud.com/7YSOYUVPHAOMMYA2N",
+      "bm": "https://on.soundcloud.com/7YSOYUVPHAOMMYA2N",
+      "cn": "https://on.soundcloud.com/7YSOYUVPHAOMMYA2N",
+      "ta": "https://on.soundcloud.com/7YSOYUVPHAOMMYA2N"
     },
     "whatsapp_script": {
       "en": "Check out \"ESBI Audio - Robert Kiyosaki\" by Robert Kiyosaki:",
@@ -397,7 +397,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Bao Yan",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -414,10 +414,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/j9iOilXwzJc",
+      "bm": "https://youtu.be/j9iOilXwzJc",
+      "cn": "https://youtu.be/j9iOilXwzJc",
+      "ta": "https://youtu.be/j9iOilXwzJc"
     },
     "whatsapp_script": {
       "en": "Check out \"How to Get Started - Bao Yan\" by Bao Yan:",
@@ -447,7 +447,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "COEV Rayne",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -464,10 +464,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/TzN8bhjy304",
+      "bm": "https://youtu.be/TzN8bhjy304",
+      "cn": "https://youtu.be/TzN8bhjy304",
+      "ta": "https://youtu.be/TzN8bhjy304"
     },
     "whatsapp_script": {
       "en": "Check out \"Nu Entrepreneur Training - COEV Rayne\" by COEV Rayne:",
@@ -497,7 +497,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Selenium",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -514,10 +514,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/ZQSPQ-BW4A",
+      "bm": "https://youtu.be/ZQSPQ-BW4A",
+      "cn": "https://youtu.be/ZQSPQ-BW4A",
+      "ta": "https://youtu.be/ZQSPQ-BW4A"
     },
     "whatsapp_script": {
       "en": "Check out \"How to do Well in ABC - Selenium\" by Selenium:",
@@ -547,7 +547,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Gavin",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "cn"
     ],
@@ -564,10 +564,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/BMFsmlI3XO0",
+      "bm": "https://youtu.be/BMFsmlI3XO0",
+      "cn": "https://youtu.be/BMFsmlI3XO0",
+      "ta": "https://youtu.be/BMFsmlI3XO0"
     },
     "whatsapp_script": {
       "en": "Check out \"ABC 法则 - Gavin\" by Gavin:",
@@ -597,7 +597,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Carolyn",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -614,10 +614,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/9emM3yN8Udg",
+      "bm": "https://youtu.be/9emM3yN8Udg",
+      "cn": "https://youtu.be/9emM3yN8Udg",
+      "ta": "https://youtu.be/9emM3yN8Udg"
     },
     "whatsapp_script": {
       "en": "Check out \"Closing Master Class - Carolyn\" by Carolyn:",
@@ -647,7 +647,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Haylane",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -664,10 +664,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/omTySVXznnk",
+      "bm": "https://youtu.be/omTySVXznnk",
+      "cn": "https://youtu.be/omTySVXznnk",
+      "ta": "https://youtu.be/omTySVXznnk"
     },
     "whatsapp_script": {
       "en": "Check out \"How to handle 30 NOs to YES - Haylane\" by Haylane:",
@@ -697,7 +697,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Renee",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -714,10 +714,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/l6p-j-JOWKM",
+      "bm": "https://youtu.be/l6p-j-JOWKM",
+      "cn": "https://youtu.be/l6p-j-JOWKM",
+      "ta": "https://youtu.be/l6p-j-JOWKM"
     },
     "whatsapp_script": {
       "en": "Check out \"G3 Juice (E) - Renee\" by Renee:",
@@ -747,7 +747,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Emily",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "cn"
     ],
@@ -764,10 +764,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/gZxNzThZzVA",
+      "bm": "https://youtu.be/gZxNzThZzVA",
+      "cn": "https://youtu.be/gZxNzThZzVA",
+      "ta": "https://youtu.be/gZxNzThZzVA"
     },
     "whatsapp_script": {
       "en": "Check out \"G3 Juice (C) - Emily\" by Emily:",
@@ -797,7 +797,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Joni",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "cn"
     ],
@@ -814,10 +814,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/SScpF43LBZY",
+      "bm": "https://youtu.be/SScpF43LBZY",
+      "cn": "https://youtu.be/SScpF43LBZY",
+      "ta": "https://youtu.be/SScpF43LBZY"
     },
     "whatsapp_script": {
       "en": "Check out \"Inner Beauty Collagen Plus (C) - Joni\" by Joni:",
@@ -847,7 +847,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Nigel",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -864,10 +864,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/Ip6MehUJTIo",
+      "bm": "https://youtu.be/Ip6MehUJTIo",
+      "cn": "https://youtu.be/Ip6MehUJTIo",
+      "ta": "https://youtu.be/Ip6MehUJTIo"
     },
     "whatsapp_script": {
       "en": "Check out \"Inner Beauty Collagen Plus (E) - Nigel\" by Nigel:",
@@ -897,7 +897,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Soo Hui",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "cn"
     ],
@@ -914,10 +914,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/aiOSdLDU2DY",
+      "bm": "https://youtu.be/aiOSdLDU2DY",
+      "cn": "https://youtu.be/aiOSdLDU2DY",
+      "ta": "https://youtu.be/aiOSdLDU2DY"
     },
     "whatsapp_script": {
       "en": "Check out \"You-Span (C) - Soo Hui\" by Soo Hui:",
@@ -947,7 +947,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Mikaela",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -964,10 +964,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/hPJEox2qSeE",
+      "bm": "https://youtu.be/hPJEox2qSeE",
+      "cn": "https://youtu.be/hPJEox2qSeE",
+      "ta": "https://youtu.be/hPJEox2qSeE"
     },
     "whatsapp_script": {
       "en": "Check out \"You-Span (E) - Mikaela\" by Mikaela:",
@@ -997,7 +997,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Shireen",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "en"
     ],
@@ -1014,10 +1014,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/fH5HKjQQPVk",
+      "bm": "https://youtu.be/fH5HKjQQPVk",
+      "cn": "https://youtu.be/fH5HKjQQPVk",
+      "ta": "https://youtu.be/fH5HKjQQPVk"
     },
     "whatsapp_script": {
       "en": "Check out \"TRME (E) - Shireen\" by Shireen:",
@@ -1047,7 +1047,7 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": ""
     },
     "speaker_name": "Chee Chai",
-    "duration": "🎥 Video",
+    "duration": "",
     "available_languages": [
       "cn"
     ],
@@ -1064,10 +1064,10 @@ export const DEFAULT_TOOLS: Tool[] = [
       "ta": []
     },
     "url": {
-      "en": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "bm": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "cn": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "ta": ""
+      "en": "https://youtu.be/WZ95M30qlgY",
+      "bm": "https://youtu.be/WZ95M30qlgY",
+      "cn": "https://youtu.be/WZ95M30qlgY",
+      "ta": "https://youtu.be/WZ95M30qlgY"
     },
     "whatsapp_script": {
       "en": "Check out \"TRME (C) - Chee Chai\" by Chee Chai:",

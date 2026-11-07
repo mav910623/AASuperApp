@@ -785,5 +785,111 @@ test('calendar: splitUpcomingMeetings separates the next 2 meetings from the res
   assert.equal(remaining[1].id, 'e5');
 });
 
+// Test 23: Mock data has real URLs and YouTube tools have empty duration
+test('mockData: YouTube resources have clean duration and real URLs', async () => {
+  const { DEFAULT_TOOLS } = await import('../src/lib/mockData.ts');
+
+  const youtubeTools = DEFAULT_TOOLS.filter((t) => t.type === 'youtube');
+  assert.ok(youtubeTools.length > 0);
+
+  // None of the YouTube tools should have '🎥 Video' or non-empty duration
+  for (const t of youtubeTools) {
+    assert.equal(t.duration, '', `Tool ${t.id} should have empty duration`);
+    assert.ok(t.url.en.includes('youtu.be') || t.url.en.includes('youtube.com'));
+    assert.ok(!t.url.en.includes('dQw4w9WgXcQ'), `Tool ${t.id} still has dummy dQw4w9WgXcQ URL`);
+  }
+});
+
+// Test 24: getActiveDailyMeetings returns daily recurring series formatted correctly
+test('calendar: getActiveDailyMeetings extracts and formats daily recurring series', async () => {
+  const { getActiveDailyMeetings } = await import('../src/lib/calendarGenerator.ts');
+
+  const calendar = {
+    recurring_rules: [
+      {
+        id: 'rule-daily-dcc',
+        title: 'Daily DCC',
+        frequency: 'daily',
+        time: '7:30 AM',
+        venue: 'Zoom',
+        address_or_link: 'https://zoom.us/j/12345',
+        is_active: true,
+      },
+      {
+        id: 'rule-weekly-asap',
+        title: 'Weekly ASAP',
+        frequency: 'weekly',
+        day_of_week: 4,
+        time: '8:30 PM',
+        address_or_link: 'KL',
+        is_active: true,
+      },
+    ],
+  };
+
+  const daily = getActiveDailyMeetings(calendar);
+  assert.equal(daily.length, 1);
+  assert.equal(daily[0].title.en, 'Daily DCC');
+  assert.equal(daily[0].zoom_link, 'https://zoom.us/j/12345');
+});
+
+// Test 25: generateMonthSchedule supports excludeDaily option
+test('calendar: generateMonthSchedule excludeDaily skips daily rule expansion in grid', async () => {
+  const { generateMonthSchedule } = await import('../src/lib/calendarGenerator.ts');
+
+  const rules = [
+    {
+      id: 'dcc',
+      title: 'Daily DCC',
+      frequency: 'daily',
+      time: '7:30 AM',
+      is_active: true,
+    },
+    {
+      id: 'special',
+      title: 'Rally',
+      frequency: 'once',
+      date: '2026-11-20',
+      time: '2:00 PM',
+      is_active: true,
+    },
+  ];
+
+  const fullSchedule = generateMonthSchedule(2026, 11, rules, [], [], []);
+  assert.ok(fullSchedule.length > 25); // Daily expanded into all month days
+
+  const excludedDailySchedule = generateMonthSchedule(2026, 11, rules, [], [], [], {
+    excludeDaily: true,
+  });
+  assert.equal(excludedDailySchedule.length, 1);
+  assert.equal(excludedDailySchedule[0].id, 'rec-special-2026-11-20');
+});
+
+// Test 26: pruneCalendarData cleans up flyer image if uploaded_at is older than 60 days
+test('calendar: pruneCalendarData removes outdated flyer older than 60 days', async () => {
+  const { pruneCalendarData } = await import('../src/lib/calendarGenerator.ts');
+
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const recentDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+
+  const outdatedCalendar = {
+    image_url: { en: 'https://cdn.com/flyer-old.jpg', bm: '', cn: '', ta: '' },
+    flyer_uploaded_at: ninetyDaysAgo,
+  };
+
+  const prunedOld = pruneCalendarData(outdatedCalendar);
+  assert.equal(prunedOld.image_url.en, '');
+  assert.equal(prunedOld.flyer_uploaded_at, undefined);
+
+  const recentCalendar = {
+    image_url: { en: 'https://cdn.com/flyer-new.jpg', bm: '', cn: '', ta: '' },
+    flyer_uploaded_at: recentDaysAgo,
+  };
+
+  const keptRecent = pruneCalendarData(recentCalendar);
+  assert.equal(keptRecent.image_url.en, 'https://cdn.com/flyer-new.jpg');
+});
+
+
 
 

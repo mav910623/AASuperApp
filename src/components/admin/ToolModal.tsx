@@ -148,7 +148,7 @@ export function ToolModal({ isOpen, onClose, onSave, tool, sections }: ToolModal
       section_id: sectionId,
       type,
       speaker_name: speakerName.trim(),
-      duration: type === 'pdf' ? '📄 PDF Guide' : type === 'soundcloud' ? '🎧 Audio' : '🎥 Video',
+      duration: type === 'pdf' ? '📄 PDF Guide' : type === 'soundcloud' ? '🎧 Audio' : '',
       is_featured: isFeatured,
       is_visible: isVisible,
       available_languages: [toolLang],

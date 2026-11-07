@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Star, Eye, EyeOff, Edit, Trash2 } from 'lucide-react';
+import { Star, Eye, EyeOff, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import type { Tool } from '@/types/app';
 
 interface ToolAdminCardProps {
@@ -11,6 +11,10 @@ interface ToolAdminCardProps {
   onToggleVisibility: (tool: Tool) => void;
   onEdit: (tool: Tool) => void;
   onDelete: (tool: Tool) => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
 export function ToolAdminCard({
@@ -20,6 +24,10 @@ export function ToolAdminCard({
   onToggleVisibility,
   onEdit,
   onDelete,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
 }: ToolAdminCardProps) {
   return (
     <div className="flex flex-col justify-between p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm hover:shadow-md transition-all gap-3">
@@ -35,6 +43,29 @@ export function ToolAdminCard({
           </div>
 
           <div className="flex items-center gap-1">
+            {onMoveUp && onMoveDown && (
+              <div className="flex items-center gap-0.5 mr-1 border-r border-zinc-200 dark:border-zinc-700 pr-1.5">
+                <button
+                  type="button"
+                  onClick={onMoveUp}
+                  disabled={!canMoveUp}
+                  className="p-1 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-25 disabled:pointer-events-none transition-colors text-zinc-600 dark:text-zinc-400"
+                  title="Move Up"
+                >
+                  <ArrowUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onMoveDown}
+                  disabled={!canMoveDown}
+                  className="p-1 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-25 disabled:pointer-events-none transition-colors text-zinc-600 dark:text-zinc-400"
+                  title="Move Down"
+                >
+                  <ArrowDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
             <button
               type="button"
               onClick={() => onToggleFeatured(tool)}
